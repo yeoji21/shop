@@ -27,26 +27,47 @@ public class Shop {
     @Column(name = "shop_name")
     private String shopName;
 
-    @Embedded
+    @Embedded @Column(name = "min_order_price")
     private Money minOrderPrice;
+
+    @Embedded @Column(name = "phone_number")
+    private PhoneNumber phoneNumber;
+
+    @Column(name = "introduction")
+    private String introduction;
+
+    @Column(name = "business_hour")
+    private String businessHour;
+
+    @Column(name = "days_off")
+    private String dayOff;
 
     @Embedded
     private ShopLocation location;
+
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<DeliveryFee> deliveryFees = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_file_id")
     private File shopImage;
 
-    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<DeliveryFee> deliveryFees = new ArrayList<>();
-
     @Builder
-    public Shop(String shopName, Money minOrderPrice, ShopLocation location, File shopImage, List<DeliveryFee> deliveryFees) {
+    public Shop(String shopName,
+                Money minOrderPrice,
+                PhoneNumber phoneNumber,
+                String introduction,
+                String businessHour, String dayOff,
+                ShopLocation location,
+                File shopImage) {
         this.shopName = shopName;
         this.minOrderPrice = minOrderPrice;
+        this.phoneNumber = phoneNumber;
+        this.introduction = introduction;
+        this.businessHour = businessHour;
+        this.dayOff = dayOff;
         this.location = location;
         this.shopImage = shopImage;
-        this.deliveryFees = deliveryFees;
     }
 
     public void addDeliveryFee(DeliveryFee deliveryFee) {
