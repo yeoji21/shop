@@ -1,4 +1,4 @@
-package delivery.shop.shop;
+package delivery.shop.shop.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

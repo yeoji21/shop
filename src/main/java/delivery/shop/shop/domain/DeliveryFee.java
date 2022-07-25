@@ -1,4 +1,4 @@
-package delivery.shop.shop;
+package delivery.shop.shop.domain;
 
 import delivery.shop.common.domain.Money;
 import lombok.AccessLevel;
@@ -18,9 +18,10 @@ public class DeliveryFee {
     @Column(name = "id")
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "shop_id")
-//    private Shop shop;
+    @Getter(AccessLevel.PROTECTED)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "order_price"))
@@ -35,9 +36,9 @@ public class DeliveryFee {
         this.fee = fee;
     }
 
-//    public void setShop(Shop shop) {
-//        this.shop = shop;
-//    }
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
 
     public void setFee(Money fee) {
         this.fee = fee;

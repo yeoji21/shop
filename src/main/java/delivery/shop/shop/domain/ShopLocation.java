@@ -1,4 +1,4 @@
-package delivery.shop.shop;
+package delivery.shop.shop.domain;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;

@@ -1,4 +1,4 @@
-package delivery.shop.shop;
+package delivery.shop.shop.domain;
 
 
 import delivery.shop.common.domain.Money;
@@ -31,8 +31,7 @@ public class Shop {
     @Embedded
     private ShopLocation location;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "shop_id")
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     List<DeliveryFee> deliveryFees = new ArrayList<>();
 
     @Builder
@@ -44,6 +43,7 @@ public class Shop {
 
     public void addDeliveryFee(DeliveryFee deliveryFee) {
         deliveryFees.add(deliveryFee);
+        deliveryFee.setShop(this);
     }
 
     public void setShopName(String shopName) {
