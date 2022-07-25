@@ -2,6 +2,8 @@ package delivery.shop.shop;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import delivery.shop.common.domain.Money;
+import delivery.shop.file.domain.File;
+import delivery.shop.file.domain.FileName;
 import delivery.shop.shop.domain.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +97,20 @@ class ShopServiceTest {
 
         clear();
     }
+
+    @Test @Transactional
+    void 가게_사진과_함께_저장() throws Exception{
+        File image = new File(new FileName("original", "stored"), "xxx");
+        Shop newShop = Shop.builder()
+                .shopName("shop")
+                .minOrderPrice(new Money(15_000))
+                .location(new ShopLocation("xxxx", 1.0, 2.0))
+                .shopImage(image)
+                .build();
+        em.persist(image);
+        shopRepository.save(newShop);
+    }
+
 
     private void clear() {
         em.flush();
