@@ -105,7 +105,7 @@ class ShopServiceTest {
                 .shopName("shop")
                 .minOrderPrice(new Money(15_000))
                 .location(new ShopLocation("xxxx", 1.0, 2.0))
-                .shopImage(image)
+                .shopThumbnail(image)
                 .build();
         em.persist(image);
         shopRepository.save(newShop);

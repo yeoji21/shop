@@ -6,7 +6,6 @@ import delivery.shop.file.domain.File;
 import lombok.*;
 
 import javax.persistence.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class Shop {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_file_id")
-    private File shopImage;
+    private File shopThumbnail;
 
     @Builder
     public Shop(String shopName,
@@ -59,7 +58,7 @@ public class Shop {
                 String introduction,
                 String businessHour, String dayOff,
                 ShopLocation location,
-                File shopImage) {
+                File shopThumbnail) {
         this.shopName = shopName;
         this.minOrderPrice = minOrderPrice;
         this.phoneNumber = phoneNumber;
@@ -67,7 +66,7 @@ public class Shop {
         this.businessHour = businessHour;
         this.dayOff = dayOff;
         this.location = location;
-        this.shopImage = shopImage;
+        this.shopThumbnail = shopThumbnail;
     }
 
     public void addDeliveryFee(DeliveryFee deliveryFee) {

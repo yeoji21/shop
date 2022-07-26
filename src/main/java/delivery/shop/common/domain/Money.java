@@ -28,4 +28,8 @@ public class Money {
     public String toString() {
         return String.valueOf(value);
     }
+
+    public int toInt() {
+        return value;
+    }
 }

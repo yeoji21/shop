@@ -1,7 +1,10 @@
 package delivery.shop.shop.domain;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import delivery.shop.shop.application.dto.response.ShopSimpleInfo;
 
-public interface ShopRepository extends JpaRepository<Shop, Long> {
+import java.util.Optional;
 
+public interface ShopRepository{
+    Optional<ShopSimpleInfo> findSimpleInfo(long shopId);
+    Shop save(Shop shop);
 }
