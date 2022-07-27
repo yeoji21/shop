@@ -6,8 +6,6 @@ import delivery.shop.file.domain.File;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @EqualsAndHashCode(of = "id")
@@ -27,7 +25,7 @@ public class Shop {
     private String shopName;
 
     @Embedded @Column(name = "min_order_price")
-    private Money minOrderPrice;
+    private Money minOrderAmount;
 
     @Embedded @Column(name = "phone_number")
     private PhoneNumber phoneNumber;
@@ -44,34 +42,36 @@ public class Shop {
     @Embedded
     private ShopLocation location;
 
-    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<DeliveryFee> deliveryFees = new ArrayList<>();
+    @Embedded
+    private DefaultDeliveryFees defaultDeliveryFees;
 
+    // TODO: 2022/07/28 객체 참조 제거하고 ID 가지도록?
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_file_id")
     private File shopThumbnail;
 
     @Builder
     public Shop(String shopName,
-                Money minOrderPrice,
+                Money minOrderAmount,
                 PhoneNumber phoneNumber,
                 String introduction,
                 String businessHour, String dayOff,
                 ShopLocation location,
                 File shopThumbnail) {
         this.shopName = shopName;
-        this.minOrderPrice = minOrderPrice;
+        this.minOrderAmount = minOrderAmount;
         this.phoneNumber = phoneNumber;
         this.introduction = introduction;
         this.businessHour = businessHour;
         this.dayOff = dayOff;
         this.location = location;
         this.shopThumbnail = shopThumbnail;
+        this.defaultDeliveryFees = new DefaultDeliveryFees();
     }
 
-    public void addDeliveryFee(DeliveryFee deliveryFee) {
-        deliveryFees.add(deliveryFee);
-        deliveryFee.setShop(this);
+    public void addDeliveryFee(OrderAmountDeliveryFee defaultDeliveryFee) {
+        defaultDeliveryFees.add(defaultDeliveryFee);
+        defaultDeliveryFee.setShop(this);
     }
 
     public void setShopName(String shopName) {

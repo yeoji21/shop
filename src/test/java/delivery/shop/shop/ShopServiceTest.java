@@ -32,13 +32,13 @@ class ShopServiceTest {
 
         Shop newShop = Shop.builder()
                 .shopName("shop")
-                .minOrderPrice(new Money(15_000))
+                .minOrderAmount(new Money(15_000))
                 .location(new ShopLocation("xxxx", 1.0, 2.0))
                 .build();
 
-        newShop.addDeliveryFee(new DeliveryFee(new Money(15_000), new Money(3000)));
-        newShop.addDeliveryFee(new DeliveryFee(new Money(20_000), new Money(1000)));
-        newShop.addDeliveryFee(new DeliveryFee(new Money(25_000), new Money(0)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(15_000), new Money(3000)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(20_000), new Money(1000)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(25_000), new Money(0)));
 
         Shop savedShop = shopRepository.save(newShop);
 
@@ -61,39 +61,39 @@ class ShopServiceTest {
     void DeliveryFee_변경_update_쿼리_나감() throws Exception{
         Shop newShop = Shop.builder()
                 .shopName("shop")
-                .minOrderPrice(new Money(15_000))
+                .minOrderAmount(new Money(15_000))
                 .location(new ShopLocation("xxxx", 1.0, 2.0))
                 .build();
 
-        newShop.addDeliveryFee(new DeliveryFee(new Money(15_000), new Money(3000)));
-        newShop.addDeliveryFee(new DeliveryFee(new Money(20_000), new Money(1000)));
-        newShop.addDeliveryFee(new DeliveryFee(new Money(25_000), new Money(0)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(15_000), new Money(3000)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(20_000), new Money(1000)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(25_000), new Money(0)));
 
         Shop savedShop = shopRepository.save(newShop);
 
-        savedShop.getDeliveryFees().forEach(d -> System.out.println(d.getFee()));
-
-        savedShop.getDeliveryFees().get(0).setFee(new Money(1));
-        clear();
-
-        savedShop.getDeliveryFees().forEach(d -> System.out.println(d.getFee()));
+//        savedShop.getDefaultDeliveryFees().forEach(d -> System.out.println(d.getFee()));
+//
+//        savedShop.getDefaultDeliveryFees().get(0).setFee(new Money(1));
+//        clear();
+//
+//        savedShop.getDefaultDeliveryFees().forEach(d -> System.out.println(d.getFee()));
     }
 
     @Test @Transactional
     void DeliveryFee_변경_delete_쿼리_나감() throws Exception{
         Shop newShop = Shop.builder()
                 .shopName("shop")
-                .minOrderPrice(new Money(15_000))
+                .minOrderAmount(new Money(15_000))
                 .location(new ShopLocation("xxxx", 1.0, 2.0))
                 .build();
 
-        newShop.addDeliveryFee(new DeliveryFee(new Money(15_000), new Money(3000)));
-        newShop.addDeliveryFee(new DeliveryFee(new Money(20_000), new Money(1000)));
-        newShop.addDeliveryFee(new DeliveryFee(new Money(25_000), new Money(0)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(15_000), new Money(3000)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(20_000), new Money(1000)));
+        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(25_000), new Money(0)));
 
         Shop savedShop = shopRepository.save(newShop);
 
-        savedShop.getDeliveryFees().remove(0);
+//        savedShop.getDefaultDeliveryFees().remove(0);
 
         clear();
     }
@@ -103,7 +103,7 @@ class ShopServiceTest {
         File image = new File(new FileName("original", "stored"), "xxx");
         Shop newShop = Shop.builder()
                 .shopName("shop")
-                .minOrderPrice(new Money(15_000))
+                .minOrderAmount(new Money(15_000))
                 .location(new ShopLocation("xxxx", 1.0, 2.0))
                 .shopThumbnail(image)
                 .build();
