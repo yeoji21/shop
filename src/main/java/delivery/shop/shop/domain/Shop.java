@@ -75,6 +75,10 @@ public class Shop {
     public void setShopName(String shopName) {
         this.shopName = shopName;
     }
+
+    public Money calculateDefaultDeliveryFee(Money orderAmount) {
+        return defaultDeliveryFees.calculateDeliveryFee(orderAmount);
+    }
 }
 
 

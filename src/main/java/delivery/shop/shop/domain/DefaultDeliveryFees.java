@@ -7,20 +7,29 @@ import lombok.NoArgsConstructor;
 import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class DefaultDeliveryFees {
+
+    // TODO: 2022/07/28 @OrderBy() 추가
+    @OrderBy("orderAmount asc")
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderAmountDeliveryFee> deliveryFees = new ArrayList<>();
 
-    public void add(OrderAmountDeliveryFee deliveryFee) {
+    void add(OrderAmountDeliveryFee deliveryFee) {
         deliveryFees.add(deliveryFee);
     }
 
-    public Money calculateDeliveryFee(Money orderAmount) {
-        return null;
+    Money calculateDeliveryFee(Money orderAmount) {
+        // 대충 이런 식.. 수정필요
+        return deliveryFees.stream()
+                .filter(deliveryFee -> deliveryFee.isSatisfiedOrderAmount(orderAmount))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new)
+                .getFee();
     }
 }

@@ -36,11 +36,11 @@ public class OrderAmountDeliveryFee {
         this.fee = fee;
     }
 
-    public void setShop(Shop shop) {
+    void setShop(Shop shop) {
         this.shop = shop;
     }
 
-    public void setFee(Money fee) {
-        this.fee = fee;
+    boolean isSatisfiedOrderAmount(Money orderAmount) {
+        return false;
     }
 }
