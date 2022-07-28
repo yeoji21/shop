@@ -29,17 +29,14 @@ public class Shop {
     @Embedded @Column(name = "min_order_price")
     private Money minOrderAmount;
 
-    @Embedded @Column(name = "phone_number")
-    private PhoneNumber phoneNumber;
-
     @Column(name = "introduction")
     private String introduction;
 
-    @Column(name = "business_hour")
-    private String businessHour;
+    @Embedded
+    private PhoneNumber phoneNumber;
 
-    @Column(name = "days_off")
-    private String dayOff;
+    @Embedded
+    private BusinessTimeInfo businessTimeInfo;
 
     @Embedded
     private ShopLocation location;
@@ -53,15 +50,14 @@ public class Shop {
                 Money minOrderAmount,
                 PhoneNumber phoneNumber,
                 String introduction,
-                String businessHour, String dayOff,
+                BusinessTimeInfo businessTimeInfo,
                 ShopLocation location,
                 Long shopThumbnailFileId) {
         this.shopName = shopName;
         this.minOrderAmount = minOrderAmount;
         this.phoneNumber = phoneNumber;
         this.introduction = introduction;
-        this.businessHour = businessHour;
-        this.dayOff = dayOff;
+        this.businessTimeInfo = businessTimeInfo;
         this.location = location;
         this.shopThumbnailFileId = shopThumbnailFileId;
         this.defaultDeliveryFees = new DefaultDeliveryFees();

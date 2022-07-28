@@ -17,6 +17,9 @@ public class ShopLocation {
             name = "street_address")
     private String streetAddress;
 
+    @Column(name = "local_id")
+    private Long localId;
+
     @Column(table = "shop_location",
             name = "latitude")
     private Double latitude;

@@ -14,8 +14,6 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class DefaultDeliveryFees {
-
-    // TODO: 2022/07/28 @OrderBy() 추가
     @OrderBy("orderAmount asc")
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderAmountDeliveryFee> deliveryFees = new ArrayList<>();
