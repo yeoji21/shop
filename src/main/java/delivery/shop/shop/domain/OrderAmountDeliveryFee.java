@@ -1,17 +1,14 @@
 package delivery.shop.shop.domain;
 
 import delivery.shop.common.domain.Money;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Getter
 @EqualsAndHashCode(exclude = "id", callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "delivery_fee")
+@Table(name = "order_amount_delivery_fee")
 @Entity
 public class OrderAmountDeliveryFee {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +28,7 @@ public class OrderAmountDeliveryFee {
     @AttributeOverride(name = "value", column = @Column(name = "fee"))
     private Money fee;
 
+    @Builder
     public OrderAmountDeliveryFee(Money orderAmount, Money fee) {
         this.orderAmount = orderAmount;
         this.fee = fee;

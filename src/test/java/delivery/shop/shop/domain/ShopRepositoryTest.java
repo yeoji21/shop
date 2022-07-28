@@ -49,7 +49,22 @@ class ShopRepositoryTest {
                 .shopThumbnailFileId(thumbnail.getId())
                 .build();
 
+        shop.addDeliveryFee(
+                OrderAmountDeliveryFee.builder()
+                        .orderAmount(new Money(20_000))
+                        .fee(new Money(2000))
+                        .build());
+
+        shop.addDeliveryFee(
+                OrderAmountDeliveryFee.builder()
+                        .orderAmount(new Money(15_000))
+                        .fee(new Money(3000))
+                        .build());
+
         Shop savedShop = shopRepository.save(shop);
+
+        em.flush();
+        em.clear();
 
         //when
         ShopSimpleInfo info = shopRepository.findSimpleInfo(savedShop.getId())
@@ -57,7 +72,7 @@ class ShopRepositoryTest {
 
         //then
         assertThat(info.getShopName()).isEqualTo(shop.getShopName());
-        assertThat(info.getMinOrderPrice()).isEqualTo(shop.getMinOrderAmount().toInt());
+        assertThat(info.getMinOrderAmount()).isEqualTo(shop.getMinOrderAmount().toInt());
         assertThat(info.getThumbnail()).isEqualTo(thumbnail.getFilePath());
 
         System.out.println(objectMapper.writeValueAsString(info));

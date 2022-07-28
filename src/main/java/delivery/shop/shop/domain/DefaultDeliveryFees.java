@@ -30,4 +30,10 @@ public class DefaultDeliveryFees {
                 .orElseThrow(IllegalArgumentException::new)
                 .getFee();
     }
+
+
+    // TODO: 2022/07/29 테스트해보고 제거
+    public List<OrderAmountDeliveryFee> getDeliveryFees() {
+        return deliveryFees;
+    }
 }
