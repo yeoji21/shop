@@ -17,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,6 +30,47 @@ class ShopRepositoryTest {
     @Autowired protected ShopRepository shopRepository;
 
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Test
+    void test() throws Exception{
+        for (int i = 0; i < 100; i++) {
+            File thumbnail = File.builder()
+                    .fileName(FileName
+                            .builder()
+                            .originalFileName("original")
+                            .storedFileName("stored")
+                            .build())
+                    .filePath("file path " + i)
+                    .build();
+            em.persist(thumbnail);
+
+            Shop shop = Shop.builder()
+                    .shopName(i + " shop")
+                    .minOrderAmount(new Money(10_000))
+                    .shopThumbnailFileId(thumbnail.getId())
+                    .build();
+
+            shop.addDeliveryFee(
+                    OrderAmountDeliveryFee.builder()
+                            .orderAmount(new Money(20_000))
+                            .fee(new Money(2000))
+                            .build());
+
+            shop.addDeliveryFee(
+                    OrderAmountDeliveryFee.builder()
+                            .orderAmount(new Money(15_000))
+                            .fee(new Money(3000))
+                            .build());
+
+            shopRepository.save(shop);
+        }
+    }
+
+    @Test
+    void 가게_간략정보_리스트로_조회() throws Exception{
+        List<ShopSimpleInfo> infoList = shopRepository.findAllSimpleInfo();
+        assertThat(infoList.size()).isEqualTo(100);
+    }
 
     @Test
     void 단건_가게_간략정보_조회() throws Exception{

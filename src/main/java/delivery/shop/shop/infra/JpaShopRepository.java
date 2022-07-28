@@ -8,6 +8,7 @@ import delivery.shop.shop.domain.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static delivery.shop.file.domain.QFile.file;
@@ -41,6 +42,16 @@ public class JpaShopRepository implements ShopRepository {
                         .fetchOne();
 
         return Optional.ofNullable(info);
+    }
+
+    @Override
+    public List<ShopSimpleInfo> findAllSimpleInfo() {
+        // 2번 방식 -> in query 나가서 2번으로 조회
+        // 이때 fetch join 사용하면 추후 페이징을 할 수 없으니 in query로 가져와야할듯
+        return queryFactory.select(new QShopSimpleInfo(shop, file.filePath))
+                .from(shop)
+                .leftJoin(file).on(shop.shopThumbnailFileId.eq(file.id))
+                .fetch();
     }
 
 
