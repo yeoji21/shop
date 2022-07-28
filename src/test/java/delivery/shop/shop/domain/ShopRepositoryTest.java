@@ -46,7 +46,7 @@ class ShopRepositoryTest {
         Shop shop = Shop.builder()
                 .shopName("A shop")
                 .minOrderAmount(new Money(10_000))
-                .shopThumbnail(thumbnail)
+                .shopThumbnailFileId(thumbnail.getId())
                 .build();
 
         Shop savedShop = shopRepository.save(shop);
@@ -58,7 +58,7 @@ class ShopRepositoryTest {
         //then
         assertThat(info.getShopName()).isEqualTo(shop.getShopName());
         assertThat(info.getMinOrderPrice()).isEqualTo(shop.getMinOrderAmount().toInt());
-        assertThat(info.getThumbnail()).isEqualTo(shop.getShopThumbnail().getFilePath());
+        assertThat(info.getThumbnail()).isEqualTo(thumbnail.getFilePath());
 
         System.out.println(objectMapper.writeValueAsString(info));
     }

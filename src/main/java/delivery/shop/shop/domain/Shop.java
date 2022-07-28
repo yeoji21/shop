@@ -2,7 +2,6 @@ package delivery.shop.shop.domain;
 
 
 import delivery.shop.common.domain.Money;
-import delivery.shop.file.domain.File;
 import lombok.*;
 
 import javax.persistence.*;
@@ -23,6 +22,9 @@ public class Shop {
 
     @Column(name = "shop_name")
     private String shopName;
+
+    @Column(name = "shop_file_id")
+    private Long shopThumbnailFileId;
 
     @Embedded @Column(name = "min_order_price")
     private Money minOrderAmount;
@@ -45,10 +47,6 @@ public class Shop {
     @Embedded
     private DefaultDeliveryFees defaultDeliveryFees;
 
-    // TODO: 2022/07/28 객체 참조 제거하고 ID 가지도록?
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shop_file_id")
-    private File shopThumbnail;
 
     @Builder
     public Shop(String shopName,
@@ -57,7 +55,7 @@ public class Shop {
                 String introduction,
                 String businessHour, String dayOff,
                 ShopLocation location,
-                File shopThumbnail) {
+                Long shopThumbnailFileId) {
         this.shopName = shopName;
         this.minOrderAmount = minOrderAmount;
         this.phoneNumber = phoneNumber;
@@ -65,7 +63,7 @@ public class Shop {
         this.businessHour = businessHour;
         this.dayOff = dayOff;
         this.location = location;
-        this.shopThumbnail = shopThumbnail;
+        this.shopThumbnailFileId = shopThumbnailFileId;
         this.defaultDeliveryFees = new DefaultDeliveryFees();
     }
 

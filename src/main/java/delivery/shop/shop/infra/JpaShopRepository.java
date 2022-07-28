@@ -21,9 +21,9 @@ public class JpaShopRepository implements ShopRepository {
 
     public Optional<ShopSimpleInfo> findSimpleInfo(long shopId){
         return Optional.ofNullable(
-                queryFactory.select(new QShopSimpleInfo(shop.shopName, shop.minOrderPrice.value, file.filePath))
+                queryFactory.select(new QShopSimpleInfo(shop.shopName, shop.minOrderAmount.value, file.filePath))
                         .from(shop)
-                        .leftJoin(shop.shopThumbnail, file)
+                        .leftJoin(file).on(shop.shopThumbnailFileId.eq(file.id))
                         .where(shop.id.eq(shopId))
                         .fetchOne()
         );
