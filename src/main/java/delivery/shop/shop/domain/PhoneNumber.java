@@ -19,4 +19,9 @@ public class PhoneNumber {
             throw new IllegalArgumentException("invalid phone number format");
         this.value = phoneNumber;
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

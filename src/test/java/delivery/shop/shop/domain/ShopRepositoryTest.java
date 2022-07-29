@@ -5,6 +5,7 @@ import delivery.shop.common.config.JpaQueryFactoryConfig;
 import delivery.shop.common.domain.Money;
 import delivery.shop.file.domain.File;
 import delivery.shop.file.domain.FileName;
+import delivery.shop.shop.application.dto.response.ShopDetailInfo;
 import delivery.shop.shop.application.dto.response.ShopSimpleInfo;
 import delivery.shop.shop.infra.JpaShopRepository;
 import delivery.shop.shop.infra.ShopQueryDao;
@@ -77,20 +78,52 @@ class ShopRepositoryTest {
     @Test
     void 단건_가게_간략정보_조회() throws Exception{
         //given
-        File thumbnail = File.builder()
-                .fileName(FileName
-                        .builder()
-                        .originalFileName("original")
-                        .storedFileName("stored")
-                        .build())
-                .filePath("file path")
-                .build();
-        em.persist(thumbnail);
+        File thumbnail = getThumbnail();
+        Shop savedShop = getShop(thumbnail);
 
+        //when
+        ShopSimpleInfo info = shopQueryDao.findSimpleInfo(savedShop.getId())
+                .orElseThrow(IllegalArgumentException::new);
+
+        //then
+        assertThat(info.getShopId()).isEqualTo(savedShop.getId());
+        assertThat(info.getShopName()).isEqualTo(savedShop.getShopName());
+        assertThat(info.getMinOrderAmount()).isEqualTo(savedShop.getMinOrderAmount().toInt());
+        assertThat(info.getThumbnail()).isEqualTo(thumbnail.getFilePath());
+
+        System.out.println(objectMapper.writeValueAsString(info));
+    }
+
+    @Test
+    void 단건_가게_상세정보_조회() throws Exception{
+        //given
+        File thumbnail = getThumbnail();
+        Shop savedShop = getShop(thumbnail);
+
+        //when
+        ShopDetailInfo info = shopQueryDao.findDetailInfo(savedShop.getId())
+                .orElseThrow(IllegalArgumentException::new);
+
+        //then
+        assertThat(info.getShopId()).isEqualTo(savedShop.getId());
+        assertThat(info.getShopName()).isEqualTo(savedShop.getShopName());
+        assertThat(info.getMinOrderAmount()).isEqualTo(savedShop.getMinOrderAmount().toInt());
+        assertThat(info.getDayOff()).isEqualTo(savedShop.getBusinessTimeInfo().getDayOff());
+        assertThat(info.getStreetAddress()).isEqualTo(savedShop.getLocation().getStreetAddress());
+
+        System.out.println(objectMapper.writeValueAsString(info));
+    }
+
+
+    private Shop getShop(File thumbnail) {
         Shop shop = Shop.builder()
                 .shopName("A shop")
                 .minOrderAmount(new Money(10_000))
                 .shopThumbnailFileId(thumbnail.getId())
+                .introduction("안녕하세용")
+                .phoneNumber(new PhoneNumber("010-1234-1245"))
+                .location(new ShopLocation("xxxx-xxx", 1L))
+                .businessTimeInfo(new BusinessTimeInfo("매일 10시~21시", "매주 첫째주 일요일"))
                 .build();
 
         shop.addDeliveryFee(
@@ -109,16 +142,19 @@ class ShopRepositoryTest {
 
         em.flush();
         em.clear();
+        return savedShop;
+    }
 
-        //when
-        ShopSimpleInfo info = shopQueryDao.findSimpleInfo(savedShop.getId())
-                .orElseThrow(IllegalArgumentException::new);
-
-        //then
-        assertThat(info.getShopName()).isEqualTo(shop.getShopName());
-        assertThat(info.getMinOrderAmount()).isEqualTo(shop.getMinOrderAmount().toInt());
-        assertThat(info.getThumbnail()).isEqualTo(thumbnail.getFilePath());
-
-        System.out.println(objectMapper.writeValueAsString(info));
+    private File getThumbnail() {
+        File thumbnail = File.builder()
+                .fileName(FileName
+                        .builder()
+                        .originalFileName("original")
+                        .storedFileName("stored")
+                        .build())
+                .filePath("file path")
+                .build();
+        em.persist(thumbnail);
+        return thumbnail;
     }
 }

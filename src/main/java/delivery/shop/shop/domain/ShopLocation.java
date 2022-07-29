@@ -28,6 +28,11 @@ public class ShopLocation {
             name = "longitude")
     private Double longitude;
 
+    public ShopLocation(String streetAddress, Long localId) {
+        this.streetAddress = streetAddress;
+        this.localId = localId;
+    }
+
     public ShopLocation(String streetAddress, Double latitude, Double longitude) {
         this.streetAddress = streetAddress;
         this.latitude = latitude;
