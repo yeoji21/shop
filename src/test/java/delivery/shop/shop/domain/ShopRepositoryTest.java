@@ -7,6 +7,7 @@ import delivery.shop.file.domain.File;
 import delivery.shop.file.domain.FileName;
 import delivery.shop.shop.application.dto.response.ShopSimpleInfo;
 import delivery.shop.shop.infra.JpaShopRepository;
+import delivery.shop.shop.infra.ShopQueryDao;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import({JpaQueryFactoryConfig.class, JpaShopRepository.class})
+@Import({JpaQueryFactoryConfig.class, JpaShopRepository.class, ShopQueryDao.class})
 @ExtendWith(SpringExtension.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 class ShopRepositoryTest {
     @PersistenceContext EntityManager em;
     @Autowired protected ShopRepository shopRepository;
+    @Autowired protected ShopQueryDao shopQueryDao;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,7 +70,7 @@ class ShopRepositoryTest {
 
     @Test
     void 가게_간략정보_리스트로_조회() throws Exception{
-        List<ShopSimpleInfo> infoList = shopRepository.findAllSimpleInfo();
+        List<ShopSimpleInfo> infoList = shopQueryDao.findAllSimpleInfo();
         assertThat(infoList.size()).isEqualTo(100);
     }
 
@@ -109,7 +111,7 @@ class ShopRepositoryTest {
         em.clear();
 
         //when
-        ShopSimpleInfo info = shopRepository.findSimpleInfo(savedShop.getId())
+        ShopSimpleInfo info = shopQueryDao.findSimpleInfo(savedShop.getId())
                 .orElseThrow(IllegalArgumentException::new);
 
         //then
