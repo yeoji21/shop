@@ -5,6 +5,8 @@ import delivery.shop.common.domain.Money;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @EqualsAndHashCode(of = "id")
@@ -44,6 +46,12 @@ public class Shop {
     @Embedded
     private DefaultDeliveryFees defaultDeliveryFees;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "shop_category",
+            joinColumns = @JoinColumn(name = "shop_id", referencedColumnName = "id")
+    )
+    private List<Long> categoryIds = new ArrayList<>();
 
     @Builder
     public Shop(String shopName,
@@ -68,12 +76,12 @@ public class Shop {
         defaultDeliveryFee.setShop(this);
     }
 
-    public void setShopName(String shopName) {
-        this.shopName = shopName;
-    }
-
     public Money calculateDefaultDeliveryFee(Money orderAmount) {
         return defaultDeliveryFees.calculateDeliveryFee(orderAmount);
+    }
+
+    public void includeCategory(long categoryId) {
+        categoryIds.add(categoryId);
     }
 }
 

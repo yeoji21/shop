@@ -4,7 +4,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import delivery.shop.common.domain.Money;
 import delivery.shop.file.domain.File;
 import delivery.shop.file.domain.FileName;
-import delivery.shop.shop.domain.*;
+import delivery.shop.shop.domain.OrderAmountDeliveryFee;
+import delivery.shop.shop.domain.Shop;
+import delivery.shop.shop.domain.ShopLocation;
+import delivery.shop.shop.domain.ShopRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import static delivery.shop.shop.domain.QShop.shop;
 
 //@ExtendWith(SpringExtension.class)
 //@Import(JpaQueryFactoryConfig.class)
@@ -26,36 +27,6 @@ class ShopServiceTest {
 
     @PersistenceContext
     private EntityManager em;
-
-    @Test @Transactional
-    void Shop_이름_변경_update_쿼리_나감() throws Exception{
-
-        Shop newShop = Shop.builder()
-                .shopName("shop")
-                .minOrderAmount(new Money(15_000))
-                .location(new ShopLocation("xxxx", 1.0, 2.0))
-                .build();
-
-        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(15_000), new Money(3000)));
-        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(20_000), new Money(1000)));
-        newShop.addDeliveryFee(new OrderAmountDeliveryFee(new Money(25_000), new Money(0)));
-
-        Shop savedShop = shopRepository.save(newShop);
-
-        Shop findShop = queryFactory.selectFrom(shop)
-                .where(shop.id.eq(savedShop.getId()))
-                .fetchOne();
-
-        findShop.setShopName("test");
-
-        clear();
-
-        Shop updatedShop = queryFactory.selectFrom(shop)
-                .where(shop.id.eq(savedShop.getId()))
-                .fetchOne();
-
-        System.out.println(updatedShop.getShopName());
-    }
 
     @Test @Transactional
     void DeliveryFee_변경_update_쿼리_나감() throws Exception{

@@ -1,6 +1,7 @@
 package delivery.shop.shop.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import delivery.shop.category.domain.Category;
 import delivery.shop.common.config.JpaQueryFactoryConfig;
 import delivery.shop.common.domain.Money;
 import delivery.shop.file.domain.File;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.EntityManager;
@@ -67,6 +69,63 @@ class ShopRepositoryTest {
 
             shopRepository.save(shop);
         }
+    }
+
+    @Test @Rollback(value = false)
+    void 가게_카테고리_함께_저장() throws Exception{
+        Category chicken = new Category("치킨");
+        Category pizza = new Category("피자");
+        Category coffee = new Category("커피");
+        em.persist(chicken);
+        em.persist(pizza);
+        em.persist(coffee);
+
+        Shop shop = getShopWithoutCategory();
+
+        shop.includeCategory(chicken.getId());
+        shop.includeCategory(pizza.getId());
+        shop.includeCategory(coffee.getId());
+
+        em.persist(shop);
+    }
+
+    @Test @Rollback(value = false)
+    void 가게에_카테고리_저장_후_삭제() throws Exception{
+
+        Shop shop = em.find(Shop.class, 1L);
+
+        // shopId에 해당하는 데이터 모두 제거 후 다시 insert 하는 것 확인
+        shop.getCategoryIds().remove(0);
+
+        em.flush();
+        em.clear();
+    }
+
+
+    private Shop getShopWithoutCategory() {
+        File thumbnail = getThumbnail();
+        Shop shop = Shop.builder()
+                .shopName("A shop")
+                .minOrderAmount(new Money(10_000))
+                .shopThumbnailFileId(thumbnail.getId())
+                .introduction("안녕하세용")
+                .phoneNumber(new PhoneNumber("010-1234-1245"))
+                .location(new ShopLocation("xxxx-xxx", 1L))
+                .businessTimeInfo(new BusinessTimeInfo("매일 10시~21시", "매주 첫째주 일요일"))
+                .build();
+
+        shop.addDeliveryFee(
+                OrderAmountDeliveryFee.builder()
+                        .orderAmount(new Money(20_000))
+                        .fee(new Money(2000))
+                        .build());
+
+        shop.addDeliveryFee(
+                OrderAmountDeliveryFee.builder()
+                        .orderAmount(new Money(15_000))
+                        .fee(new Money(3000))
+                        .build());
+        return shop;
     }
 
     @Test
