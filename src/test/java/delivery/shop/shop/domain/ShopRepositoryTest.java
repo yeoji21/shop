@@ -86,6 +86,8 @@ class ShopRepositoryTest {
         shop.includeCategory(pizza.getId());
         shop.includeCategory(coffee.getId());
 
+        shop.includeCategory(pizza.getId());
+
         em.persist(shop);
     }
 

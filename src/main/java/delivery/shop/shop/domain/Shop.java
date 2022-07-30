@@ -5,8 +5,8 @@ import delivery.shop.common.domain.Money;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @EqualsAndHashCode(of = "id")
@@ -51,7 +51,8 @@ public class Shop {
             name = "shop_category",
             joinColumns = @JoinColumn(name = "shop_id", referencedColumnName = "id")
     )
-    private List<Long> categoryIds = new ArrayList<>();
+    @Column(name = "category_id")
+    private Set<Long> categoryIds = new HashSet<>();
 
     @Builder
     public Shop(String shopName,
