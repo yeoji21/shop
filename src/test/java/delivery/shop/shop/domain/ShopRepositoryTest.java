@@ -103,6 +103,15 @@ class ShopRepositoryTest {
         em.clear();
     }
 
+    @Test @Rollback(value = false)
+    void 가게_메뉴_저장() throws Exception{
+        Shop shop = getShopWithoutCategory();
+        shop.addMenu(new Menu("메뉴 1", "메뉴 1입니다~!"));
+        shop.addMenu(new Menu("메뉴 2", "메뉴 2입니다~!"));
+        shop.addMenu(new Menu("메뉴 3", "메뉴 3입니다~!"));
+        em.persist(shop);
+    }
+
 
     private Shop getShopWithoutCategory() {
         File thumbnail = getThumbnail();

@@ -1,11 +1,14 @@
 package delivery.shop.shop.domain;
 
 
+import delivery.shop.common.domain.DisplayInfo;
 import delivery.shop.common.domain.Money;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -54,6 +57,9 @@ public class Shop {
     @Column(name = "category_id")
     private Set<Long> categoryIds = new HashSet<>();
 
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Menu> menus = new ArrayList<>();
+
     @Builder
     public Shop(String shopName,
                 Money minOrderAmount,
@@ -83,6 +89,12 @@ public class Shop {
 
     public void includeCategory(long categoryId) {
         categoryIds.add(categoryId);
+    }
+
+    public void addMenu(Menu menu) {
+        menu.setDisplayInfo(new DisplayInfo(menus.size()));
+        menus.add(menu);
+        menu.setShop(this);
     }
 }
 
