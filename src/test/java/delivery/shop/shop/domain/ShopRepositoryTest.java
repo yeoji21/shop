@@ -6,6 +6,7 @@ import delivery.shop.common.config.JpaQueryFactoryConfig;
 import delivery.shop.common.domain.Money;
 import delivery.shop.file.domain.File;
 import delivery.shop.file.domain.FileName;
+import delivery.shop.product.domain.Product;
 import delivery.shop.shop.application.dto.response.ShopDetailInfo;
 import delivery.shop.shop.application.dto.response.ShopSimpleInfo;
 import delivery.shop.shop.infra.JpaShopRepository;
@@ -99,8 +100,7 @@ class ShopRepositoryTest {
         // shopId에 해당하는 데이터 모두 제거 후 다시 insert 하는 것 확인
         shop.getCategoryIds().remove(0);
 
-        em.flush();
-        em.clear();
+        entityManagerClear();
     }
 
     @Test @Rollback(value = false)
@@ -110,6 +110,35 @@ class ShopRepositoryTest {
         shop.addMenu(new Menu("메뉴 2", "메뉴 2입니다~!"));
         shop.addMenu(new Menu("메뉴 3", "메뉴 3입니다~!"));
         em.persist(shop);
+    }
+
+    @Test @Rollback(value = false)
+    void 가게_메뉴_상품_저장() throws Exception{
+        Shop shop = getShopWithoutCategory();
+        shop.addMenu(new Menu("메뉴 1", "메뉴 1입니다~!"));
+        shop.addMenu(new Menu("메뉴 2", "메뉴 2입니다~!"));
+        shop.addMenu(new Menu("메뉴 3", "메뉴 3입니다~!"));
+        em.persist(shop);
+
+        entityManagerClear();
+
+        Product product1 = new Product("상품 1", new Money(10_000));
+        Product product2 = new Product("상품 2", new Money(12_000));
+        Product product3 = new Product("상품 3", new Money(23_000));
+
+        em.persist(product1);
+        em.persist(product2);
+        em.persist(product3);
+
+        Menu menu = em.find(Menu.class, 1L);
+        shop.addProduct(menu, product1);
+        shop.addProduct(menu, product2);
+        shop.addProduct(menu, product3);
+    }
+
+    private void entityManagerClear() {
+        em.flush();
+        em.clear();
     }
 
 
@@ -210,8 +239,7 @@ class ShopRepositoryTest {
 
         Shop savedShop = shopRepository.save(shop);
 
-        em.flush();
-        em.clear();
+        entityManagerClear();
         return savedShop;
     }
 

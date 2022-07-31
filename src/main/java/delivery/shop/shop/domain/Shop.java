@@ -3,6 +3,7 @@ package delivery.shop.shop.domain;
 
 import delivery.shop.common.domain.DisplayInfo;
 import delivery.shop.common.domain.Money;
+import delivery.shop.product.domain.Product;
 import lombok.*;
 
 import javax.persistence.*;
@@ -57,6 +58,7 @@ public class Shop {
     @Column(name = "category_id")
     private Set<Long> categoryIds = new HashSet<>();
 
+    @OrderBy("displayInfo.displayOrder")
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Menu> menus = new ArrayList<>();
 
@@ -93,8 +95,14 @@ public class Shop {
 
     public void addMenu(Menu menu) {
         menu.setDisplayInfo(new DisplayInfo(menus.size()));
-        menus.add(menu);
         menu.setShop(this);
+        menus.add(menu);
+    }
+
+    public void addProduct(Menu menu, Product product) {
+        if(!menus.contains(menu))
+            throw new IllegalArgumentException();
+        menu.addProduct(product);
     }
 }
 
