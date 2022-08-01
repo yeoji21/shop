@@ -18,6 +18,7 @@ public class ShopQueryService {
                 .orElseThrow(IllegalArgumentException::new);
     }
 
+    @Transactional(readOnly = true)
     public ShopDetailInfo findDetailInfo(long shopId) {
         return queryDao.findDetailInfo(shopId)
                 .orElseThrow(IllegalArgumentException::new);

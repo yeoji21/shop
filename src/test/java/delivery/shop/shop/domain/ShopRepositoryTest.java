@@ -103,7 +103,7 @@ class ShopRepositoryTest {
         entityManagerClear();
     }
 
-    @Test @Rollback(value = false)
+    @Test
     void 가게_메뉴_저장() throws Exception{
         Shop shop = getShopWithoutCategory();
         shop.addMenu(new Menu("메뉴 1", "메뉴 1입니다~!"));
@@ -112,7 +112,7 @@ class ShopRepositoryTest {
         em.persist(shop);
     }
 
-    @Test @Rollback(value = false)
+    @Test
     void 가게_메뉴_상품_저장() throws Exception{
         Shop shop = getShopWithoutCategory();
         shop.addMenu(new Menu("메뉴 1", "메뉴 1입니다~!"));
@@ -130,10 +130,11 @@ class ShopRepositoryTest {
         em.persist(product2);
         em.persist(product3);
 
+        Shop findShop = em.find(Shop.class, 1L);
         Menu menu = em.find(Menu.class, 1L);
-        shop.addProduct(menu, product1);
-        shop.addProduct(menu, product2);
-        shop.addProduct(menu, product3);
+        findShop.addProduct(menu, product1);
+        findShop.addProduct(menu, product2);
+        findShop.addProduct(menu, product3);
     }
 
     private void entityManagerClear() {

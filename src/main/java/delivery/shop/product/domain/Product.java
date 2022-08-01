@@ -19,10 +19,6 @@ public class Product {
 
     private Money price;
 
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<MenuProduct> menuProducts = new ArrayList<>();
-
-
     public Product(String name, Money price) {
         this.name = name;
         this.price = price;

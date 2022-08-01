@@ -25,6 +25,7 @@ public class ShopSimpleInfo {
         this.shopName = shop.getShopName();
         this.minOrderAmount = shop.getMinOrderAmount().toInt();
         this.thumbnail = thumbnail;
+        // getDefaultDeliveryFees 내부로 이동
         this.deliveryFee = shop.getDefaultDeliveryFees()
                 .getDeliveryFees()
                 .get(0)

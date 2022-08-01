@@ -24,16 +24,6 @@ public class Money {
         return new Money(this.value - money.value);
     }
 
-    public Money times(double times) {
-
-
-
-
-
-
-        return null;
-    }
-
     @Override
     public String toString() {
         return String.valueOf(value);
