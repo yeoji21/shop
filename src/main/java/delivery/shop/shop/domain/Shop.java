@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @EqualsAndHashCode(of = "id")
@@ -48,7 +49,7 @@ public class Shop {
     private ShopLocation location;
 
     @Embedded
-    private DefaultDeliveryFees defaultDeliveryFees;
+    private DefaultDeliveryFeeOptions defaultDeliveryFeeOptions;
 
     @ElementCollection
     @CollectionTable(
@@ -77,16 +78,16 @@ public class Shop {
         this.businessTimeInfo = businessTimeInfo;
         this.location = location;
         this.shopThumbnailFileId = shopThumbnailFileId;
-        this.defaultDeliveryFees = new DefaultDeliveryFees();
+        this.defaultDeliveryFeeOptions = new DefaultDeliveryFeeOptions();
     }
 
     public void addDeliveryFee(OrderAmountDeliveryFee defaultDeliveryFee) {
-        defaultDeliveryFees.add(defaultDeliveryFee);
+        defaultDeliveryFeeOptions.add(defaultDeliveryFee);
         defaultDeliveryFee.setShop(this);
     }
 
     public Money calculateDefaultDeliveryFee(Money orderAmount) {
-        return defaultDeliveryFees.calculateDeliveryFee(orderAmount);
+        return defaultDeliveryFeeOptions.calculateDeliveryFee(orderAmount);
     }
 
     public void includeCategory(long categoryId) {
@@ -103,6 +104,14 @@ public class Shop {
         if(!menus.contains(menu))
             throw new IllegalArgumentException();
         menu.addProduct(product);
+    }
+
+    public List<Money> getDefaultDeliveryFees() {
+        return defaultDeliveryFeeOptions
+                .getDeliveryFeeOptions()
+                .stream()
+                .map(OrderAmountDeliveryFee::getFee)
+                .collect(Collectors.toList());
     }
 }
 

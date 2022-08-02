@@ -3,6 +3,6 @@ package delivery.shop.shop.infra;
 import delivery.shop.shop.domain.Shop;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ShopDao extends JpaRepository<Shop, Long>{
+interface ShopDao extends JpaRepository<Shop, Long>{
 
 }

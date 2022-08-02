@@ -13,27 +13,27 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
-public class DefaultDeliveryFees {
+public class DefaultDeliveryFeeOptions {
     @OrderBy("orderAmount asc")
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<OrderAmountDeliveryFee> deliveryFees = new ArrayList<>();
+    List<OrderAmountDeliveryFee> deliveryFeeOptions = new ArrayList<>();
 
     void add(OrderAmountDeliveryFee deliveryFee) {
-        deliveryFees.add(deliveryFee);
+        deliveryFeeOptions.add(deliveryFee);
     }
 
     Money calculateDeliveryFee(Money orderAmount) {
         // 대충 이런 식.. 수정필요
-        return deliveryFees.stream()
+        return deliveryFeeOptions.stream()
                 .filter(deliveryFee -> deliveryFee.isSatisfiedOrderAmount(orderAmount))
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new)
                 .getFee();
     }
 
-
     // TODO: 2022/07/29 테스트해보고 제거
-    public List<OrderAmountDeliveryFee> getDeliveryFees() {
-        return deliveryFees;
+    public List<OrderAmountDeliveryFee> getDeliveryFeeOptions() {
+        return deliveryFeeOptions;
     }
+
 }
