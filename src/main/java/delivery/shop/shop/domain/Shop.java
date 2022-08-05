@@ -47,13 +47,8 @@ public class Shop {
     @Embedded
     private ShopLocation location;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "category_shop",
-            joinColumns = @JoinColumn(name = "shop_id", referencedColumnName = "id")
-    )
-    @Column(name = "category_id")
-    private Set<Long> categoryIds = new HashSet<>();
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CategoryShop> categories = new HashSet<>();
 
     @OrderBy("displayInfo.displayOrder")
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -66,7 +61,8 @@ public class Shop {
                 String introduction,
                 BusinessTimeInfo businessTimeInfo,
                 ShopLocation location,
-                Long shopThumbnailFileId) {
+                Long shopThumbnailFileId,
+                @Singular Set<Long> categoryIds) {
         this.name = name;
         this.minOrderAmount = minOrderAmount;
         this.phoneNumber = phoneNumber;
@@ -74,15 +70,16 @@ public class Shop {
         this.businessTimeInfo = businessTimeInfo;
         this.location = location;
         this.shopThumbnailFileId = shopThumbnailFileId;
+        categoryIds.forEach(category -> this.categories.add(new CategoryShop(this, category)));
     }
 
 //    public Money calculateDefaultDeliveryFee(Money orderAmount) {
 //        return defaultDeliveryFeeOptions.calculateDeliveryFee(orderAmount);
 //    }
 
-    public void includeCategory(long categoryId) {
-        categoryIds.add(categoryId);
-    }
+//    public void includeCategory(long categoryId) {
+//        categories.add(categoryId);
+//    }
 
     public void addMenu(Menu menu) {
         menu.setDisplayInfo(new DisplayInfo(menus.size()));

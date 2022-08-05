@@ -82,11 +82,11 @@ class ShopRepositoryTest {
 
         Shop shop = getShopWithoutCategory();
 
-        shop.includeCategory(chicken.getId());
-        shop.includeCategory(pizza.getId());
-        shop.includeCategory(coffee.getId());
-
-        shop.includeCategory(pizza.getId());
+//        shop.includeCategory(chicken.getId());
+//        shop.includeCategory(pizza.getId());
+//        shop.includeCategory(coffee.getId());
+//
+//        shop.includeCategory(pizza.getId());
 
         em.persist(shop);
     }
