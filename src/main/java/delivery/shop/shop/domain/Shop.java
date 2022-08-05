@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Getter
 @EqualsAndHashCode(of = "id")
@@ -28,7 +27,7 @@ public class Shop {
     private Long id;
 
     @Column(name = "shop_name")
-    private String shopName;
+    private String name;
 
     @Column(name = "shop_file_id")
     private Long shopThumbnailFileId;
@@ -48,12 +47,9 @@ public class Shop {
     @Embedded
     private ShopLocation location;
 
-    @Embedded
-    private DefaultDeliveryFeeOptions defaultDeliveryFeeOptions;
-
     @ElementCollection
     @CollectionTable(
-            name = "shop_category",
+            name = "category_shop",
             joinColumns = @JoinColumn(name = "shop_id", referencedColumnName = "id")
     )
     @Column(name = "category_id")
@@ -64,31 +60,25 @@ public class Shop {
     private List<Menu> menus = new ArrayList<>();
 
     @Builder
-    public Shop(String shopName,
+    public Shop(String name,
                 Money minOrderAmount,
                 PhoneNumber phoneNumber,
                 String introduction,
                 BusinessTimeInfo businessTimeInfo,
                 ShopLocation location,
                 Long shopThumbnailFileId) {
-        this.shopName = shopName;
+        this.name = name;
         this.minOrderAmount = minOrderAmount;
         this.phoneNumber = phoneNumber;
         this.introduction = introduction;
         this.businessTimeInfo = businessTimeInfo;
         this.location = location;
         this.shopThumbnailFileId = shopThumbnailFileId;
-        this.defaultDeliveryFeeOptions = new DefaultDeliveryFeeOptions();
     }
 
-    public void addDeliveryFee(OrderAmountDeliveryFee defaultDeliveryFee) {
-        defaultDeliveryFeeOptions.add(defaultDeliveryFee);
-        defaultDeliveryFee.setShop(this);
-    }
-
-    public Money calculateDefaultDeliveryFee(Money orderAmount) {
-        return defaultDeliveryFeeOptions.calculateDeliveryFee(orderAmount);
-    }
+//    public Money calculateDefaultDeliveryFee(Money orderAmount) {
+//        return defaultDeliveryFeeOptions.calculateDeliveryFee(orderAmount);
+//    }
 
     public void includeCategory(long categoryId) {
         categoryIds.add(categoryId);
@@ -106,13 +96,13 @@ public class Shop {
         menu.addProduct(product);
     }
 
-    public List<Money> getDefaultDeliveryFees() {
-        return defaultDeliveryFeeOptions
-                .getDeliveryFeeOptions()
-                .stream()
-                .map(OrderAmountDeliveryFee::getFee)
-                .collect(Collectors.toList());
-    }
+//    public List<Money> getDefaultDeliveryFees() {
+//        return defaultDeliveryFeeOptions
+//                .getDeliveryFeeOptions()
+//                .stream()
+//                .map(OrderAmountDeliveryFee::getFee)
+//                .collect(Collectors.toList());
+//    }
 }
 
 

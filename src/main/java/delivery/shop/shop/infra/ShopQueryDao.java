@@ -8,10 +8,12 @@ import delivery.shop.shop.application.dto.response.ShopSimpleInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
 import static delivery.shop.file.domain.QFile.file;
+import static delivery.shop.shop.domain.QOrderAmountDeliveryFee.orderAmountDeliveryFee;
 import static delivery.shop.shop.domain.QShop.shop;
 
 @RequiredArgsConstructor
@@ -21,19 +23,18 @@ public class ShopQueryDao {
 
     public Optional<ShopSimpleInfo> findSimpleInfo(long shopId){
         return Optional.ofNullable(
-                queryFactory.select(new QShopSimpleInfo(shop, file.filePath))
+                queryFactory
                         .from(shop)
-                        .leftJoin(file).on(shop.shopThumbnailFileId.eq(file.id))
                         .where(shop.id.eq(shopId))
-                        .fetchOne()
+                        .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
+                        .leftJoin(orderAmountDeliveryFee).on(orderAmountDeliveryFee.shop.eq(shop))
+                        .transform(
+                                groupBy(shop.id).as(
+                                        new QShopSimpleInfo(shop.id, shop.name, shop.minOrderAmount.value, file.filePath,
+                                                list(orderAmountDeliveryFee.fee.value))
+                                )
+                        ).get(shopId)
         );
-    }
-
-    public List<ShopSimpleInfo> findAllSimpleInfo() {
-        return queryFactory.select(new QShopSimpleInfo(shop, file.filePath))
-                .from(shop)
-                .leftJoin(file).on(shop.shopThumbnailFileId.eq(file.id))
-                .fetch();
     }
 
     public Optional<ShopDetailInfo> findDetailInfo(long shopId) {

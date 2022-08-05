@@ -25,7 +25,7 @@ public class ShopDetailInfo {
     @QueryProjection
     public ShopDetailInfo(Shop shop) {
         this.shopId = shop.getId();
-        this.shopName = shop.getShopName();
+        this.shopName = shop.getName();
         this.minOrderAmount = shop.getMinOrderAmount().toInt();
         this.introduction = shop.getIntroduction();
         this.phoneNumber = shop.getPhoneNumber().toString();

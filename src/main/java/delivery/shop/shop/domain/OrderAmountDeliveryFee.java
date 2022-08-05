@@ -29,7 +29,8 @@ public class OrderAmountDeliveryFee {
     private Money fee;
 
     @Builder
-    public OrderAmountDeliveryFee(Money orderAmount, Money fee) {
+    public OrderAmountDeliveryFee(Shop shop, Money orderAmount, Money fee) {
+        this.shop = shop;
         this.orderAmount = orderAmount;
         this.fee = fee;
     }

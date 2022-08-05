@@ -22,7 +22,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 class ShopRepositoryTest {
-    @PersistenceContext EntityManager em;
+    @PersistenceContext private EntityManager em;
     @Autowired protected ShopRepository shopRepository;
     @Autowired protected ShopQueryDao shopQueryDao;
 
@@ -51,22 +50,22 @@ class ShopRepositoryTest {
             em.persist(thumbnail);
 
             Shop shop = Shop.builder()
-                    .shopName(i + " shop")
+                    .name(i + " shop")
                     .minOrderAmount(new Money(10_000))
                     .shopThumbnailFileId(thumbnail.getId())
                     .build();
 
-            shop.addDeliveryFee(
-                    OrderAmountDeliveryFee.builder()
-                            .orderAmount(new Money(20_000))
-                            .fee(new Money(2000))
-                            .build());
-
-            shop.addDeliveryFee(
-                    OrderAmountDeliveryFee.builder()
-                            .orderAmount(new Money(15_000))
-                            .fee(new Money(3000))
-                            .build());
+//            shop.addDeliveryFee(
+//                    OrderAmountDeliveryFee.builder()
+//                            .orderAmount(new Money(20_000))
+//                            .fee(new Money(2000))
+//                            .build());
+//
+//            shop.addDeliveryFee(
+//                    OrderAmountDeliveryFee.builder()
+//                            .orderAmount(new Money(15_000))
+//                            .fee(new Money(3000))
+//                            .build());
 
             shopRepository.save(shop);
         }
@@ -90,17 +89,6 @@ class ShopRepositoryTest {
         shop.includeCategory(pizza.getId());
 
         em.persist(shop);
-    }
-
-    @Test @Rollback(value = false)
-    void 가게에_카테고리_저장_후_삭제() throws Exception{
-
-        Shop shop = em.find(Shop.class, 1L);
-
-        // shopId에 해당하는 데이터 모두 제거 후 다시 insert 하는 것 확인
-        shop.getCategoryIds().remove(0);
-
-        entityManagerClear();
     }
 
     @Test
@@ -146,7 +134,7 @@ class ShopRepositoryTest {
     private Shop getShopWithoutCategory() {
         File thumbnail = getThumbnail();
         Shop shop = Shop.builder()
-                .shopName("A shop")
+                .name("A shop")
                 .minOrderAmount(new Money(10_000))
                 .shopThumbnailFileId(thumbnail.getId())
                 .introduction("안녕하세용")
@@ -155,25 +143,20 @@ class ShopRepositoryTest {
                 .businessTimeInfo(new BusinessTimeInfo("매일 10시~21시", "매주 첫째주 일요일"))
                 .build();
 
-        shop.addDeliveryFee(
-                OrderAmountDeliveryFee.builder()
-                        .orderAmount(new Money(20_000))
-                        .fee(new Money(2000))
-                        .build());
-
-        shop.addDeliveryFee(
-                OrderAmountDeliveryFee.builder()
-                        .orderAmount(new Money(15_000))
-                        .fee(new Money(3000))
-                        .build());
+//        shop.addDeliveryFee(
+//                OrderAmountDeliveryFee.builder()
+//                        .orderAmount(new Money(20_000))
+//                        .fee(new Money(2000))
+//                        .build());
+//
+//        shop.addDeliveryFee(
+//                OrderAmountDeliveryFee.builder()
+//                        .orderAmount(new Money(15_000))
+//                        .fee(new Money(3000))
+//                        .build());
         return shop;
     }
 
-    @Test
-    void 가게_간략정보_리스트로_조회() throws Exception{
-        List<ShopSimpleInfo> infoList = shopQueryDao.findAllSimpleInfo();
-        assertThat(infoList.size()).isEqualTo(100);
-    }
 
     @Test
     void 단건_가게_간략정보_조회() throws Exception{
@@ -187,7 +170,7 @@ class ShopRepositoryTest {
 
         //then
         assertThat(info.getShopId()).isEqualTo(savedShop.getId());
-        assertThat(info.getShopName()).isEqualTo(savedShop.getShopName());
+        assertThat(info.getShopName()).isEqualTo(savedShop.getName());
         assertThat(info.getMinOrderAmount()).isEqualTo(savedShop.getMinOrderAmount().toInt());
         assertThat(info.getThumbnail()).isEqualTo(thumbnail.getFilePath());
 
@@ -206,7 +189,7 @@ class ShopRepositoryTest {
 
         //then
         assertThat(info.getShopId()).isEqualTo(savedShop.getId());
-        assertThat(info.getShopName()).isEqualTo(savedShop.getShopName());
+        assertThat(info.getShopName()).isEqualTo(savedShop.getName());
         assertThat(info.getMinOrderAmount()).isEqualTo(savedShop.getMinOrderAmount().toInt());
         assertThat(info.getDayOff()).isEqualTo(savedShop.getBusinessTimeInfo().getDayOff());
         assertThat(info.getStreetAddress()).isEqualTo(savedShop.getLocation().getStreetAddress());
@@ -214,10 +197,12 @@ class ShopRepositoryTest {
         System.out.println(objectMapper.writeValueAsString(info));
     }
 
+    @Test @Rollback(value = false)
+    void 가게_배달비_단방향_저장() throws Exception{
+        File thumbnail = getThumbnail();
 
-    private Shop getShop(File thumbnail) {
         Shop shop = Shop.builder()
-                .shopName("A shop")
+                .name("A shop")
                 .minOrderAmount(new Money(10_000))
                 .shopThumbnailFileId(thumbnail.getId())
                 .introduction("안녕하세용")
@@ -225,18 +210,45 @@ class ShopRepositoryTest {
                 .location(new ShopLocation("xxxx-xxx", 1L))
                 .businessTimeInfo(new BusinessTimeInfo("매일 10시~21시", "매주 첫째주 일요일"))
                 .build();
+        em.persist(shop);
 
-        shop.addDeliveryFee(
-                OrderAmountDeliveryFee.builder()
-                        .orderAmount(new Money(20_000))
-                        .fee(new Money(2000))
-                        .build());
+        OrderAmountDeliveryFee deliveryFee = OrderAmountDeliveryFee.builder()
+                .shop(shop)
+                .orderAmount(new Money(20_000))
+                .fee(new Money(2000))
+                .build();
+        em.persist(deliveryFee);
 
-        shop.addDeliveryFee(
-                OrderAmountDeliveryFee.builder()
-                        .orderAmount(new Money(15_000))
-                        .fee(new Money(3000))
-                        .build());
+        OrderAmountDeliveryFee deliveryFee2 = OrderAmountDeliveryFee.builder()
+                .shop(shop)
+                .orderAmount(new Money(15_000))
+                .fee(new Money(3000))
+                .build();
+        em.persist(deliveryFee2);
+
+        ShopSimpleInfo info = shopQueryDao.findSimpleInfo(shop.getId())
+                .orElseThrow(IllegalArgumentException::new);
+
+        //then
+        assertThat(info.getShopId()).isEqualTo(shop.getId());
+        assertThat(info.getShopName()).isEqualTo(shop.getName());
+        assertThat(info.getMinOrderAmount()).isEqualTo(shop.getMinOrderAmount().toInt());
+        assertThat(info.getThumbnail()).isEqualTo(thumbnail.getFilePath());
+        assertThat(info.getDefaultDeliveryFees().size()).isGreaterThan(0);
+
+        System.out.println(objectMapper.writeValueAsString(info));
+    }
+
+    private Shop getShop(File thumbnail) {
+        Shop shop = Shop.builder()
+                .name("A shop")
+                .minOrderAmount(new Money(10_000))
+                .shopThumbnailFileId(thumbnail.getId())
+                .introduction("안녕하세용")
+                .phoneNumber(new PhoneNumber("010-1234-1245"))
+                .location(new ShopLocation("xxxx-xxx", 1L))
+                .businessTimeInfo(new BusinessTimeInfo("매일 10시~21시", "매주 첫째주 일요일"))
+                .build();
 
         Shop savedShop = shopRepository.save(shop);
 
