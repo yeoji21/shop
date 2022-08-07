@@ -25,8 +25,7 @@ import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.querydsl.core.group.GroupBy.groupBy;
-import static com.querydsl.core.group.GroupBy.list;
+import static com.querydsl.core.group.GroupBy.*;
 import static delivery.shop.file.domain.QFile.file;
 import static delivery.shop.shop.domain.QCategoryShop.categoryShop;
 import static delivery.shop.shop.domain.QOrderAmountDeliveryFee.orderAmountDeliveryFee;
@@ -107,13 +106,21 @@ public class ShopQueryDaoTest {
                 .select(orderAmountDeliveryFee.shop.id, orderAmountDeliveryFee.fee.value.min())
                 .from(orderAmountDeliveryFee)
                 .join(categoryShop).on(categoryShop.shop.eq(orderAmountDeliveryFee.shop))
-                .where(categoryShop.categoryId.eq(1L))
                 .groupBy(orderAmountDeliveryFee.shop.id)
+                .having(
+                        orderAmountDeliveryFee.fee.value.min().gt(2000)
+                        .or(
+                                orderAmountDeliveryFee.fee.value.min().eq(2000).and(orderAmountDeliveryFee.shop.id.gt(19L))
+                        )
+                )
+                .where(categoryShop.categoryId.eq(1L))
                 .orderBy(orderAmountDeliveryFee.fee.value.min().asc())
                 .limit(10)
                 .fetch()
                 .stream().map(t -> t.get(orderAmountDeliveryFee.shop.id))
                 .collect(Collectors.toList());
+
+        shopIds.forEach(System.out::println);
 
         List<ShopSimpleInfo> infoList = queryFactory
                 .from(shop)
@@ -134,32 +141,6 @@ public class ShopQueryDaoTest {
             System.out.println("========================");
         });
 
-
-//        List<Tuple> fetch = queryFactory
-//                .select(shop, orderAmountDeliveryFee.fee.value.min())
-//                .from(orderAmountDeliveryFee)
-//                .innerJoin(orderAmountDeliveryFee.shop, shop)
-//                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
-//                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
-//                .where(categoryShop.categoryId.eq(1L))
-//                .groupBy(shop.id)
-//                .fetch();
-//        fetch.forEach(t -> System.out.println(t.get(shop).getId() + " -> "
-//                + t.get(orderAmountDeliveryFee.fee.value.min())));
-
-//        List<ShopSimpleInfo> result = queryFactory
-//                .from(shop)
-//                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
-//                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
-//                .leftJoin(orderAmountDeliveryFee).on(orderAmountDeliveryFee.shop.eq(shop))
-//                .where(categoryShop.categoryId.eq(1L))
-//                .limit(10)
-//                .orderBy(orderAmountDeliveryFee.fee.value.asc())
-//                .transform(
-//                        groupBy(shop).list(new QShopSimpleInfo(shop.id, shop.name, shop.minOrderAmount.value, file.filePath,
-//                                list(orderAmountDeliveryFee.fee.value)))
-//                );
-//        result.forEach(shop -> System.out.println(shop.getShopName()));
     }
 
     private BooleanExpression isShopIdLt(Long cursorId) {
