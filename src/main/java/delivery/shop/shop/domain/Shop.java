@@ -71,6 +71,7 @@ public class Shop {
         this.location = location;
         this.shopThumbnailFileId = shopThumbnailFileId;
         categoryIds.forEach(category -> this.categories.add(new CategoryShop(this, category)));
+        if(categories.size() == 0) throw new IllegalArgumentException();
     }
 
 //    public Money calculateDefaultDeliveryFee(Money orderAmount) {

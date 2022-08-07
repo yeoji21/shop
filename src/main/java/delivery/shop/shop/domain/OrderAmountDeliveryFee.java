@@ -15,7 +15,7 @@ public class OrderAmountDeliveryFee {
     @Column(name = "id")
     private Long id;
 
-    @Getter(AccessLevel.PROTECTED)
+//    @Getter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_id")
     private Shop shop;

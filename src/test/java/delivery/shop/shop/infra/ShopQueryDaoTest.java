@@ -1,8 +1,12 @@
 package delivery.shop.shop.infra;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import delivery.shop.common.config.JpaQueryFactoryConfig;
 import delivery.shop.common.domain.Money;
+import delivery.shop.shop.application.dto.response.QShopSimpleInfo;
+import delivery.shop.shop.application.dto.response.ShopSimpleInfo;
 import delivery.shop.shop.domain.BusinessTimeInfo;
 import delivery.shop.shop.domain.OrderAmountDeliveryFee;
 import delivery.shop.shop.domain.PhoneNumber;
@@ -18,6 +22,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
+import static delivery.shop.file.domain.QFile.file;
+import static delivery.shop.shop.domain.QCategoryShop.categoryShop;
+import static delivery.shop.shop.domain.QOrderAmountDeliveryFee.orderAmountDeliveryFee;
+import static delivery.shop.shop.domain.QShop.shop;
 
 @Import({JpaQueryFactoryConfig.class, ShopQueryDao.class})
 @ExtendWith(SpringExtension.class)
@@ -32,7 +45,7 @@ public class ShopQueryDaoTest {
 
     @Test @Rollback(value = false)
     void test() throws Exception{
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 50; i++) {
             Shop shop = Shop.builder()
                     .name(i + " shop")
                     .minOrderAmount(new Money(10_000))
@@ -42,31 +55,114 @@ public class ShopQueryDaoTest {
                     .build();
             em.persist(shop);
 
-            OrderAmountDeliveryFee deliveryFee = OrderAmountDeliveryFee.builder()
+            OrderAmountDeliveryFee first = OrderAmountDeliveryFee.builder()
                     .shop(shop)
                     .orderAmount(new Money(i * 1000))
-                    .fee(new Money(1000))
+                    .fee(new Money(i * 100))
                     .build();
-            em.persist(deliveryFee);
+            em.persist(first);
+
+            OrderAmountDeliveryFee second = OrderAmountDeliveryFee.builder()
+                    .shop(shop)
+                    .orderAmount(new Money(i * 1000))
+                    .fee(new Money(i * 500))
+                    .build();
+            em.persist(second);
         }
         em.flush();
         em.clear();
     }
 
+    @Test
+    void keep() throws Exception{
+        List<Tuple> fetch = queryFactory
+                .select(orderAmountDeliveryFee.shop, orderAmountDeliveryFee.fee.value.min())
+                .from(orderAmountDeliveryFee)
+                .groupBy(orderAmountDeliveryFee.shop.id)
+                .orderBy(orderAmountDeliveryFee.fee.value.min().asc())
+                .fetch();
 
+        for (int i = 0; i < fetch.size(); i++) {
+            System.out.println(fetch.get(i).get(orderAmountDeliveryFee.shop).getName());
+        }
+
+        queryFactory
+                .select(orderAmountDeliveryFee.shop, orderAmountDeliveryFee.fee.value.min())
+                .from(orderAmountDeliveryFee)
+                .join(categoryShop).on(categoryShop.shop.eq(orderAmountDeliveryFee.shop))
+                .where(categoryShop.categoryId.eq(1L))
+                .groupBy(orderAmountDeliveryFee.shop.id)
+                .orderBy(orderAmountDeliveryFee.fee.value.min().asc())
+                .fetch();
+
+        for (int i = 0; i < fetch.size(); i++) {
+            System.out.println(fetch.get(i).get(orderAmountDeliveryFee.shop.id) + " - > " +
+                    fetch.get(i).get(orderAmountDeliveryFee.fee.value.min()));
+        }
+    }
 
     @Test
     void select() throws Exception{
+        List<Long> shopIds = queryFactory
+                .select(orderAmountDeliveryFee.shop.id, orderAmountDeliveryFee.fee.value.min())
+                .from(orderAmountDeliveryFee)
+                .join(categoryShop).on(categoryShop.shop.eq(orderAmountDeliveryFee.shop))
+                .where(categoryShop.categoryId.eq(1L))
+                .groupBy(orderAmountDeliveryFee.shop.id)
+                .orderBy(orderAmountDeliveryFee.fee.value.min().asc())
+                .limit(10)
+                .fetch()
+                .stream().map(t -> t.get(orderAmountDeliveryFee.shop.id))
+                .collect(Collectors.toList());
+
+        List<ShopSimpleInfo> infoList = queryFactory
+                .from(shop)
+                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
+                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
+                .leftJoin(orderAmountDeliveryFee).on(orderAmountDeliveryFee.shop.eq(shop))
+                .where(shop.id.in(shopIds))
+                .orderBy(shop.id.desc())
+                .transform(
+                        groupBy(shop).list(new QShopSimpleInfo(shop.id, shop.name, shop.minOrderAmount.value, file.filePath,
+                                list(orderAmountDeliveryFee.fee.value)))
+                );
+
+        infoList.forEach(shop -> {
+            System.out.println(shop.getShopName());
+            shop.getDefaultDeliveryFees().forEach(m -> System.out.print(m + " "));
+            System.out.println();
+            System.out.println("========================");
+        });
+
+
+//        List<Tuple> fetch = queryFactory
+//                .select(shop, orderAmountDeliveryFee.fee.value.min())
+//                .from(orderAmountDeliveryFee)
+//                .innerJoin(orderAmountDeliveryFee.shop, shop)
+//                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
+//                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
+//                .where(categoryShop.categoryId.eq(1L))
+//                .groupBy(shop.id)
+//                .fetch();
+//        fetch.forEach(t -> System.out.println(t.get(shop).getId() + " -> "
+//                + t.get(orderAmountDeliveryFee.fee.value.min())));
+
 //        List<ShopSimpleInfo> result = queryFactory
 //                .from(shop)
-//                .where(shop.categoryIds.contains(1L))
+//                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
 //                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
 //                .leftJoin(orderAmountDeliveryFee).on(orderAmountDeliveryFee.shop.eq(shop))
+//                .where(categoryShop.categoryId.eq(1L))
+//                .limit(10)
+//                .orderBy(orderAmountDeliveryFee.fee.value.asc())
 //                .transform(
 //                        groupBy(shop).list(new QShopSimpleInfo(shop.id, shop.name, shop.minOrderAmount.value, file.filePath,
 //                                list(orderAmountDeliveryFee.fee.value)))
 //                );
-//
 //        result.forEach(shop -> System.out.println(shop.getShopName()));
+    }
+
+    private BooleanExpression isShopIdLt(Long cursorId) {
+        return cursorId != null ? shop.id.lt(cursorId) : null;
     }
 }

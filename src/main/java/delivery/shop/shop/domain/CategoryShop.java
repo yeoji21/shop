@@ -7,6 +7,7 @@ import javax.persistence.*;
 
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "category_shop")
 @Entity
 public class CategoryShop {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
