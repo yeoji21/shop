@@ -2,6 +2,7 @@ package delivery.shop.shop.infra;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import delivery.shop.common.config.JpaQueryFactoryConfig;
 import delivery.shop.common.domain.Money;
@@ -23,13 +24,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.querydsl.core.group.GroupBy.*;
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
 import static delivery.shop.file.domain.QFile.file;
 import static delivery.shop.shop.domain.QCategoryShop.categoryShop;
 import static delivery.shop.shop.domain.QOrderAmountDeliveryFee.orderAmountDeliveryFee;
 import static delivery.shop.shop.domain.QShop.shop;
+import static java.util.stream.Collectors.groupingBy;
 
 @Import({JpaQueryFactoryConfig.class, ShopQueryDao.class})
 @ExtendWith(SpringExtension.class)
@@ -143,7 +147,113 @@ public class ShopQueryDaoTest {
 
     }
 
+
+    @Test
+    void 페이징_문제_해결() throws Exception{
+        String customCursor = null;
+//        String customCursor = "00000000000000000011";
+
+        List<ShopSimpleInfo> infoList = queryFactory.select(new QShopSimpleInfo(shop.id, shop.name, shop.minOrderAmount.value, file.filePath))
+                .from(shop)
+                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
+                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
+                .where(categoryShop.categoryId.eq(1L), shopIdCustomCursor(customCursor))
+                .limit(11)
+                .orderBy(shop.id.desc())
+                .fetch();
+
+        List<Long> shopIds = infoList.stream()
+                .map(ShopSimpleInfo::getShopId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<OrderAmountDeliveryFee>> deliveryFeeMap = queryFactory.select(orderAmountDeliveryFee)
+                .from(orderAmountDeliveryFee)
+                .where(orderAmountDeliveryFee.shop.id.in(shopIds))
+                .fetch()
+                .stream()
+                .collect(groupingBy(OrderAmountDeliveryFee::getShopId));
+
+        infoList.forEach(
+                info -> {
+                    List<Integer> deliveryFees = deliveryFeeMap.get(info.getShopId())
+                            .stream()
+                            .map(deliveryFee -> deliveryFee.getFee().toInt())
+                            .collect(Collectors.toList());
+                    info.setDefaultDeliveryFees(deliveryFees);
+                }
+        );
+
+        System.out.println("================================================");
+        System.out.println(infoList.subList(0, 10).size());
+        System.out.println("================================================");
+
+        infoList
+                .subList(0, 10)
+                .stream()
+                .forEach(s -> {
+                    System.out.println(s.getShopName());
+                    s.getDefaultDeliveryFees().forEach(d -> System.out.println(d + " "));
+                    System.out.println();
+                });
+    }
+
+    @Test
+    void custom_cursor_shopId() throws Exception{
+        String customCursor = null;
+
+        queryFactory
+                .from(shop)
+                .innerJoin(categoryShop).on(categoryShop.shop.eq(shop))
+                .leftJoin(file).on(file.id.eq(shop.shopThumbnailFileId))
+                .leftJoin(orderAmountDeliveryFee).on(orderAmountDeliveryFee.shop.eq(shop))
+                .where(categoryShop.categoryId.eq(1L), shopIdCustomCursor(customCursor))
+                .limit(10)
+                .orderBy(shop.id.desc())
+                .transform(
+                        groupBy(shop).list(new QShopSimpleInfo(shop.id, shop.name, shop.minOrderAmount.value, file.filePath,
+                                list(orderAmountDeliveryFee.fee.value)))
+                )
+                .forEach(s -> System.out.println(s.getShopName()));
+
+    }
+
+    private BooleanExpression shopIdCustomCursor(String customCursor) {
+        if(customCursor == null || customCursor.length() < 20) return null;
+
+        return StringExpressions.lpad(shop.id.stringValue(), 20, '0')
+                .lt(customCursor);
+    }
+
+
     private BooleanExpression isShopIdLt(Long cursorId) {
         return cursorId != null ? shop.id.lt(cursorId) : null;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -29,4 +29,16 @@ public class ShopSimpleInfo {
         this.thumbnail = thumbnail;
         this.defaultDeliveryFees = defaultDeliveryFees;
     }
+
+    @QueryProjection
+    public ShopSimpleInfo(long shopId, String shopName, int minOrderAmount, String thumbnail) {
+        this.shopId = shopId;
+        this.shopName = shopName;
+        this.minOrderAmount = minOrderAmount;
+        this.thumbnail = thumbnail;
+    }
+
+    public void setDefaultDeliveryFees(List<Integer> defaultDeliveryFees) {
+        this.defaultDeliveryFees = defaultDeliveryFees;
+    }
 }
