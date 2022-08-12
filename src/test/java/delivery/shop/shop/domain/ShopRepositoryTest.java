@@ -133,7 +133,7 @@ class ShopRepositoryTest {
 
     private Shop getShopWithoutCategory() {
         File thumbnail = getThumbnail();
-        Shop shop = Shop.builder()
+        return Shop.builder()
                 .name("A shop")
                 .minOrderAmount(new Money(10_000))
                 .shopThumbnailFileId(thumbnail.getId())
@@ -142,19 +142,6 @@ class ShopRepositoryTest {
                 .location(new ShopLocation("xxxx-xxx", 1L))
                 .businessTimeInfo(new BusinessTimeInfo("매일 10시~21시", "매주 첫째주 일요일"))
                 .build();
-
-//        shop.addDeliveryFee(
-//                OrderAmountDeliveryFee.builder()
-//                        .orderAmount(new Money(20_000))
-//                        .fee(new Money(2000))
-//                        .build());
-//
-//        shop.addDeliveryFee(
-//                OrderAmountDeliveryFee.builder()
-//                        .orderAmount(new Money(15_000))
-//                        .fee(new Money(3000))
-//                        .build());
-        return shop;
     }
 
 
