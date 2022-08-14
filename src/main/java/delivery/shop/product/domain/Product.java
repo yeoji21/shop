@@ -18,7 +18,6 @@ public class Product {
     private Long id;
     private String name;
     private Money price;
-
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductItemGroup> itemGroups = new ArrayList<>();
 
@@ -39,17 +38,21 @@ public class Product {
             throw new IllegalArgumentException();
 
         Money totalAmount = Money.ZERO.add(this.price);
-
         for (ItemGroup key : items.keySet()) {
-            ProductItemGroup findOne = itemGroups.stream()
-                    .filter(ig -> ig.equalItemGroup(key))
-                    .findAny()
-                    .orElseThrow(IllegalArgumentException::new);
-
-            Money itemAmount = findOne.verify(new HashSet<>(items.get(key)));
+            ProductItemGroup productItemGroup = findProductItemGroup(key);
+            Money itemAmount = productItemGroup.placeWithItems(items.get(key));
             totalAmount = totalAmount.add(itemAmount);
         }
 
         return totalAmount;
+    }
+
+    private ProductItemGroup findProductItemGroup(ItemGroup key) {
+        return itemGroups
+                .stream()
+                .filter(productItemGroup -> productItemGroup.hasItemGroup(key))
+                .findAny()
+                .orElseThrow(IllegalArgumentException::new);
+
     }
 }

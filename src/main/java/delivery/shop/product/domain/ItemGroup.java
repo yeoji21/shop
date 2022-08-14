@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -34,17 +33,20 @@ public class ItemGroup {
         items.add(new ItemInGroup(this, item));
     }
 
-    public Money verify(Set<Item> items) {
+    public Money calculateItemAmount(List<Item> items) {
+        selectionCountCheck(items);
+
+        return items.stream()
+                .filter(item -> this.items.stream()
+                        .anyMatch(itemInGroup -> itemInGroup.hasItem(item)))
+                .map(Item::getPrice)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    private void selectionCountCheck(List<Item> items) {
         int size = items.size();
         if(minCount > size || size > maxCount)
             throw new IllegalArgumentException();
-
-        return items.stream()
-                .filter(i ->
-                        this.items.stream().anyMatch(ig -> ig.getItem().equals(i))
-                )
-                .map(Item::getPrice)
-                .reduce(Money.ZERO, Money::add);
     }
 
 }

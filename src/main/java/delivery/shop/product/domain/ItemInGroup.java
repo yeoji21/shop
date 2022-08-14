@@ -29,4 +29,7 @@ public class ItemInGroup {
         this.item = item;
     }
 
+    public boolean hasItem(Item item) {
+        return this.item.equals(item);
+    }
 }

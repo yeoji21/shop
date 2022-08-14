@@ -17,7 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +74,7 @@ class ProductRepositoryTest {
         assertThat(itemGroups.size()).isEqualTo(map.size());
 
         for (Map.Entry<ItemGroup, List<Item>> es : map.entrySet()) {
-            es.getKey().verify(new HashSet<>(map.get(es.getKey())));
+            es.getKey().calculateItemAmount(map.get(es.getKey()));
         }
 
         System.out.println("==========================================");
@@ -98,7 +97,7 @@ class ProductRepositoryTest {
                 .join(itemInGroup.item, item)
                 .join(itemInGroup.itemGroup, itemGroup)
                 .join(productItemGroup).on(productItemGroup.itemGroup.eq(itemGroup))
-                .where(itemInGroup.item.id.in(3L), productItemGroup.product.id.eq(1L))
+                .where(itemInGroup.item.id.in(2L), productItemGroup.product.id.eq(1L))
                 .transform(groupBy(itemGroup).as(GroupBy.list(item)));
 
         Money totalAmount = findProduct.place(map);

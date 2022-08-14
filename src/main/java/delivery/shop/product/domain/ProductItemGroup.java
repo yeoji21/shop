@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 @EqualsAndHashCode(of = "id")
 @Getter
@@ -31,11 +31,12 @@ public class ProductItemGroup {
         this.itemGroup = itemGroup;
     }
 
-    protected boolean equalItemGroup(ItemGroup itemGroup) {
+    protected boolean hasItemGroup(ItemGroup itemGroup) {
         return this.itemGroup.equals(itemGroup);
     }
 
-    public Money verify(Set<Item> items) {
-        return itemGroup.verify(items);
+    public Money placeWithItems(List<Item> items) {
+        if(items.isEmpty()) return Money.ZERO;
+        return itemGroup.calculateItemAmount(items);
     }
 }
