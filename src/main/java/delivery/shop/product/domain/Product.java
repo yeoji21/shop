@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.*;
 
 // TODO: 2022/08/11 양방향 연관과 단방향 연관인 경우 비교
 @Getter
@@ -18,8 +19,37 @@ public class Product {
     private String name;
     private Money price;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductItemGroup> itemGroups = new ArrayList<>();
+
     public Product(String name, Money price) {
         this.name = name;
         this.price = price;
+    }
+
+    public void addItemGroup(ItemGroup itemGroup) {
+        if(itemGroup.getId() == null) throw new IllegalArgumentException();
+        itemGroups.add(new ProductItemGroup(this, itemGroup));
+    }
+
+    public Money place(Map<ItemGroup, List<Item>> items){
+        if(items.isEmpty())
+            return this.price;
+        if(items.size() != itemGroups.size())
+            throw new IllegalArgumentException();
+
+        Money totalAmount = Money.ZERO.add(this.price);
+
+        for (ItemGroup key : items.keySet()) {
+            ProductItemGroup findOne = itemGroups.stream()
+                    .filter(ig -> ig.equalItemGroup(key))
+                    .findAny()
+                    .orElseThrow(IllegalArgumentException::new);
+
+            Money itemAmount = findOne.verify(new HashSet<>(items.get(key)));
+            totalAmount = totalAmount.add(itemAmount);
+        }
+
+        return totalAmount;
     }
 }

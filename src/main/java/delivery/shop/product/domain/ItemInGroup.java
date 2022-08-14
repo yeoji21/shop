@@ -2,15 +2,17 @@ package delivery.shop.product.domain;
 
 
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+@EqualsAndHashCode(of = "id")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class ItemGroupItem {
+public class ItemInGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -22,8 +24,9 @@ public class ItemGroupItem {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    public ItemGroupItem(ItemGroup itemGroup, Item item) {
+    public ItemInGroup(ItemGroup itemGroup, Item item) {
         this.itemGroup = itemGroup;
         this.item = item;
     }
+
 }

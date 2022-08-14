@@ -10,6 +10,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 @EqualsAndHashCode
 public class Money {
+    public static Money ZERO = new Money(0);
     private int value;
 
     public Money(int value) {
