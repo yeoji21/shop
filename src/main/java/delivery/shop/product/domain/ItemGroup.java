@@ -37,8 +37,6 @@ public class ItemGroup {
         selectionCountCheck(items);
 
         return items.stream()
-                .filter(item -> this.items.stream()
-                        .anyMatch(itemInGroup -> itemInGroup.hasItem(item)))
                 .map(Item::getPrice)
                 .reduce(Money.ZERO, Money::add);
     }

@@ -30,14 +30,14 @@ public class Product {
         itemGroups.add(new ProductItemGroup(this, itemGroup));
     }
 
-    public Money place(Map<ItemGroup, List<Item>> map){
+    public Money place(Map<Long, List<Item>> map){
         if(map.isEmpty())
             return this.price;
         if(map.size() != itemGroups.size())
             throw new IllegalArgumentException();
 
         Money totalAmount = Money.ZERO.add(this.price);
-        for (ItemGroup key : map.keySet()) {
+        for (Long key : map.keySet()) {
             ProductItemGroup productItemGroup = findProductItemGroup(key);
             Money itemAmount = productItemGroup.placeWithItems(map.get(key));
             totalAmount = totalAmount.add(itemAmount);
@@ -46,10 +46,10 @@ public class Product {
         return totalAmount;
     }
 
-    private ProductItemGroup findProductItemGroup(ItemGroup key) {
+    private ProductItemGroup findProductItemGroup(Long key) {
         return itemGroups
                 .stream()
-                .filter(productItemGroup -> productItemGroup.hasItemGroup(key))
+                .filter(productItemGroup -> productItemGroup.getItemGroup().getId().equals(key))
                 .findAny()
                 .orElseThrow(IllegalArgumentException::new);
     }
