@@ -97,21 +97,26 @@ class ProductRepositoryTest {
                 .join(itemInGroup.item, item)
                 .join(itemInGroup.itemGroup, itemGroup)
                 .join(productItemGroup).on(productItemGroup.itemGroup.eq(itemGroup))
-                .where(itemInGroup.item.id.in(2L), productItemGroup.product.id.eq(1L))
+                .where(itemInGroup.item.id.in(2L, 3L, 5L), productItemGroup.product.id.eq(1L))
                 .transform(groupBy(itemGroup).as(GroupBy.list(item)));
 
         Money totalAmount = findProduct.place(map);
         System.out.println(totalAmount.toInt());
     }
 
-    private void setDataBidirectional() {
+    @Test
+    void 고아객체_삭제() throws Exception{
         Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
         em.persist(반반_치킨);
 
-        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 1);
+        ItemGroup 뼈_선택 = new ItemGroup("뼈_선택", 1, 1);
+        em.persist(뼈_선택);
+
+        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 2);
         em.persist(양념_선택);
 
         반반_치킨.addItemGroup(양념_선택);
+        반반_치킨.addItemGroup(뼈_선택);
 
         Item item1 = new Item("후라이드", new Money(0));
         Item item2 = new Item("양념", new Money(500));
@@ -124,6 +129,58 @@ class ProductRepositoryTest {
         양념_선택.addItem(item1);
         양념_선택.addItem(item2);
         양념_선택.addItem(item3);
+
+        Item item4 = new Item("뼈", new Money(0));
+        Item item5 = new Item("순살", new Money(2_000));
+
+        em.persist(item4);
+        em.persist(item5);
+
+        뼈_선택.addItem(item4);
+        뼈_선택.addItem(item5);
+
+        em.flush();
+        em.clear();
+
+        Product findProduct = em.find(Product.class, 반반_치킨.getId());
+        findProduct.getItemGroups().remove(0);
+        em.flush();
+        em.clear();
+    }
+
+    private void setDataBidirectional() {
+        Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
+        em.persist(반반_치킨);
+
+        ItemGroup 뼈_선택 = new ItemGroup("뼈_선택", 1, 1);
+        em.persist(뼈_선택);
+
+        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 2);
+        em.persist(양념_선택);
+
+        반반_치킨.addItemGroup(양념_선택);
+        반반_치킨.addItemGroup(뼈_선택);
+
+        Item item1 = new Item("후라이드", new Money(0));
+        Item item2 = new Item("양념", new Money(500));
+        Item item3 = new Item("간장", new Money(1000));
+
+        em.persist(item1);
+        em.persist(item2);
+        em.persist(item3);
+
+        양념_선택.addItem(item1);
+        양념_선택.addItem(item2);
+        양념_선택.addItem(item3);
+
+        Item item4 = new Item("뼈", new Money(0));
+        Item item5 = new Item("순살", new Money(2_000));
+
+        em.persist(item4);
+        em.persist(item5);
+
+        뼈_선택.addItem(item4);
+        뼈_선택.addItem(item5);
 
         em.flush();
         em.clear();

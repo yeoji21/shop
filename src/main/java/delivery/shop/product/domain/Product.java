@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.*;
 
-// TODO: 2022/08/11 양방향 연관과 단방향 연관인 경우 비교
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -31,16 +30,16 @@ public class Product {
         itemGroups.add(new ProductItemGroup(this, itemGroup));
     }
 
-    public Money place(Map<ItemGroup, List<Item>> items){
-        if(items.isEmpty())
+    public Money place(Map<ItemGroup, List<Item>> map){
+        if(map.isEmpty())
             return this.price;
-        if(items.size() != itemGroups.size())
+        if(map.size() != itemGroups.size())
             throw new IllegalArgumentException();
 
         Money totalAmount = Money.ZERO.add(this.price);
-        for (ItemGroup key : items.keySet()) {
+        for (ItemGroup key : map.keySet()) {
             ProductItemGroup productItemGroup = findProductItemGroup(key);
-            Money itemAmount = productItemGroup.placeWithItems(items.get(key));
+            Money itemAmount = productItemGroup.placeWithItems(map.get(key));
             totalAmount = totalAmount.add(itemAmount);
         }
 
@@ -53,6 +52,5 @@ public class Product {
                 .filter(productItemGroup -> productItemGroup.hasItemGroup(key))
                 .findAny()
                 .orElseThrow(IllegalArgumentException::new);
-
     }
 }
