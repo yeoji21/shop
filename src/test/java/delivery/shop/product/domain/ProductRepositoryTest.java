@@ -24,8 +24,12 @@ import static com.querydsl.core.group.GroupBy.groupBy;
 import static delivery.shop.product.domain.QItem.item;
 import static delivery.shop.product.domain.QItemGroup.itemGroup;
 import static delivery.shop.product.domain.QItemInGroup.itemInGroup;
+import static delivery.shop.product.domain.QOption.option;
+import static delivery.shop.product.domain.QOptionGroup.optionGroup;
+import static delivery.shop.product.domain.QOptionInGroup.optionInGroup;
 import static delivery.shop.product.domain.QProduct.product;
 import static delivery.shop.product.domain.QProductItemGroup.productItemGroup;
+import static delivery.shop.product.domain.QProductOptionGroup.productOptionGroup;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Import({JpaQueryFactoryConfig.class, JpaShopRepository.class, ShopQueryDao.class})
@@ -81,9 +85,8 @@ class ProductRepositoryTest {
     }
 
     @Test @Rollback(value = false)
-    void 양방향_상품_저장_테스트() throws Exception{
+    void place_v1() throws Exception{
         setDataBidirectional();
-
         System.out.println("=========================================================================");
 
         Product findProduct = queryFactory.selectFrom(product)
@@ -106,6 +109,117 @@ class ProductRepositoryTest {
         System.out.println(totalAmount.toInt());
     }
 
+    @Test @Rollback(value = false)
+    void place_v2() throws Exception{
+        Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
+        em.persist(반반_치킨);
+
+        ItemGroup 뼈_선택 = new ItemGroup("뼈_선택", 1, 1);
+        em.persist(뼈_선택);
+
+        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 2);
+        em.persist(양념_선택);
+
+        ItemGroup emptyGroup = new ItemGroup("emptyGroup", 1, 1);
+        em.persist(emptyGroup);
+
+        반반_치킨.addItemGroup(양념_선택);
+        반반_치킨.addItemGroup(뼈_선택);
+//        반반_치킨.addItemGroup(emptyGroup);
+
+        Item item1 = new Item("후라이드", new Money(0));
+        Item item2 = new Item("양념", new Money(500));
+        Item item3 = new Item("간장", new Money(1000));
+
+        em.persist(item1);
+        em.persist(item2);
+        em.persist(item3);
+
+        양념_선택.addItem(item1);
+        양념_선택.addItem(item2);
+        양념_선택.addItem(item3);
+
+        Item item4 = new Item("뼈", new Money(0));
+        Item item5 = new Item("순살", new Money(2_000));
+
+        em.persist(item4);
+        em.persist(item5);
+
+        뼈_선택.addItem(item4);
+        뼈_선택.addItem(item5);
+
+
+        OptionGroup sideMenu = new OptionGroup("사이드 메뉴", 3);
+        em.persist(sideMenu);
+        em.persist(new ProductOptionGroup(반반_치킨, sideMenu));
+
+        OptionGroup emptyOptionGroup = new OptionGroup("emptyOptionGroup", 3);
+        em.persist(emptyOptionGroup);
+        em.persist(new ProductOptionGroup(반반_치킨, emptyOptionGroup));
+
+        Option optionA = new Option("optionA", new Money(1000));
+        Option optionB = new Option("optionB", new Money(2000));
+        Option optionC = new Option("optionC", new Money(3000));
+        Option optionD = new Option("optionD", new Money(4000));
+
+        em.persist(optionA);
+        em.persist(optionB);
+        em.persist(optionC);
+        em.persist(optionD);
+
+        sideMenu.addOption(optionA);
+        sideMenu.addOption(optionB);
+        sideMenu.addOption(optionC);
+        sideMenu.addOption(optionD);
+
+
+        em.flush();
+        em.clear();
+
+        System.out.println("=========================================================================");
+
+
+
+
+        // 가격 계산 없이 필수 옵션 다 들어왔는지만 체크하려면 이게 베스트
+        Map<ItemGroup, List<Item>> ingredientMap = queryFactory
+                .from(productItemGroup)
+                .join(productItemGroup.product, product)
+                .join(productItemGroup.itemGroup, itemGroup)
+                .leftJoin(itemInGroup).on(itemInGroup.itemGroup.eq(itemGroup))
+                .leftJoin(itemInGroup.item, item).on(item.id.in(2L, 3L, 5L))
+                .where(product.id.eq(1L))
+                .transform(groupBy(itemGroup).as(GroupBy.list(item)));
+
+        for (Map.Entry<ItemGroup, List<Item>> es : ingredientMap.entrySet()) {
+            System.out.println(es.getKey().getName());
+            System.out.print(" -> ");
+            es.getValue().forEach(i -> System.out.print(i.getName() + " "));
+            Money money = es.getKey().calculateItemAmount(es.getValue());
+            System.out.println("totalPrice = " + money.toInt());
+            System.out.println();
+        }
+
+        // 옵션은 이렇게 조회하면 안되지! 안들어와도 되니까
+        Map<OptionGroup, List<Option>> optionMap = queryFactory
+                .from(productOptionGroup)
+                .join(productOptionGroup.product, product)
+                .join(productOptionGroup.optionGroup, optionGroup)
+                .leftJoin(optionInGroup).on(optionInGroup.optionGroup.eq(optionGroup))
+                .leftJoin(optionInGroup.option, option).on(option.id.in(optionA.getId(), optionB.getId(), optionC.getId()))
+                .where(product.id.eq(1L))
+                .transform(groupBy(optionGroup).as(GroupBy.list(option)));
+
+        for (Map.Entry<OptionGroup, List<Option>> es : optionMap.entrySet()) {
+            System.out.println(es.getKey().getName());
+            System.out.print(" -> ");
+            es.getValue().forEach(o -> System.out.print(o.getName() + " "));
+            es.getKey().validateOptions(es.getValue());
+            System.out.println();
+        }
+
+    }
+
     private void setDataBidirectional() {
         Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
         em.persist(반반_치킨);
@@ -118,6 +232,10 @@ class ProductRepositoryTest {
 
         반반_치킨.addItemGroup(양념_선택);
         반반_치킨.addItemGroup(뼈_선택);
+
+//        ItemGroup emptyGroup = new ItemGroup("emptyGroup", 1, 1);
+//        em.persist(emptyGroup);
+//        반반_치킨.addItemGroup(emptyGroup);
 
         Item item1 = new Item("후라이드", new Money(0));
         Item item2 = new Item("양념", new Money(500));

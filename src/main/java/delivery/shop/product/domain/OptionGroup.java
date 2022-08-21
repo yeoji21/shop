@@ -36,6 +36,11 @@ public class OptionGroup{
         this.maxSelectCount = maxSelectCount;
     }
 
+    public void validateOptions(List<Option> options) {
+        if(options.size() > maxSelectCount)
+            throw new IllegalArgumentException();
+    }
+
     public void addOption(Option option) {
         options.add(new OptionInGroup(this, option));
     }
