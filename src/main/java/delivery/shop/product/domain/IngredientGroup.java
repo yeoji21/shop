@@ -19,7 +19,7 @@ public class IngredientGroup {
     private String name;
     private int minCount;
     private int maxCount;
-    @OneToMany(mappedBy = "itemGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "ingredientGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IngredientInGroup> ingredients = new ArrayList<>();
 
     public IngredientGroup(String name, int minCount, int maxCount) {
