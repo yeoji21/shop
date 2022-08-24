@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Item {
+public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -20,7 +20,7 @@ public class Item {
     private String name;
     private Money price;
 
-    public Item(String name, Money price) {
+    public Ingredient(String name, Money price) {
         this.name = name;
         this.price = price;
     }

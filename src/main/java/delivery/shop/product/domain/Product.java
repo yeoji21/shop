@@ -18,38 +18,38 @@ public class Product {
     private String name;
     private Money price;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductItemGroup> itemGroups = new ArrayList<>();
+    private List<ProductIngredientGroup> ingredientGroups = new ArrayList<>();
 
     public Product(String name, Money price) {
         this.name = name;
         this.price = price;
     }
 
-    public void addItemGroup(ItemGroup itemGroup) {
-        if(itemGroup.getId() == null) throw new IllegalArgumentException();
-        itemGroups.add(new ProductItemGroup(this, itemGroup));
+    public void addItemGroup(IngredientGroup ingredientGroup) {
+        if(ingredientGroup.getId() == null) throw new IllegalArgumentException();
+        ingredientGroups.add(new ProductIngredientGroup(this, ingredientGroup));
     }
 
-    public Money place(Map<Long, List<Item>> map){
+    public Money place(Map<Long, List<Ingredient>> map){
         if(map.isEmpty())
             return this.price;
-        if(map.size() != itemGroups.size())
+        if(map.size() != ingredientGroups.size())
             throw new IllegalArgumentException();
 
         Money totalAmount = Money.ZERO.add(this.price);
         for (Long key : map.keySet()) {
-            ProductItemGroup productItemGroup = findProductItemGroup(key);
-            Money itemAmount = productItemGroup.placeWithItems(map.get(key));
+            ProductIngredientGroup productIngredientGroup = findProductItemGroup(key);
+            Money itemAmount = productIngredientGroup.placeWithItems(map.get(key));
             totalAmount = totalAmount.add(itemAmount);
         }
 
         return totalAmount;
     }
 
-    private ProductItemGroup findProductItemGroup(Long key) {
-        return itemGroups
+    private ProductIngredientGroup findProductItemGroup(Long key) {
+        return ingredientGroups
                 .stream()
-                .filter(productItemGroup -> productItemGroup.getItemGroup().getId().equals(key))
+                .filter(productIngredientGroup -> productIngredientGroup.getIngredientGroup().getId().equals(key))
                 .findAny()
                 .orElseThrow(IllegalArgumentException::new);
     }

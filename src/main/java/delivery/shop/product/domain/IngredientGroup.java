@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class ItemGroup {
+public class IngredientGroup {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
@@ -20,29 +20,29 @@ public class ItemGroup {
     private int minCount;
     private int maxCount;
     @OneToMany(mappedBy = "itemGroup", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemInGroup> items = new ArrayList<>();
+    private List<IngredientInGroup> ingredients = new ArrayList<>();
 
-    public ItemGroup(String name, int minCount, int maxCount) {
+    public IngredientGroup(String name, int minCount, int maxCount) {
         this.name = name;
         this.minCount = minCount;
         this.maxCount = maxCount;
     }
 
-    public void addItem(Item item) {
-        if(item.getId() == null) throw new IllegalArgumentException();
-        items.add(new ItemInGroup(this, item));
+    public void addItem(Ingredient ingredient) {
+        if(ingredient.getId() == null) throw new IllegalArgumentException();
+        ingredients.add(new IngredientInGroup(this, ingredient));
     }
 
-    public Money calculateItemAmount(List<Item> items) {
-        selectionCountCheck(items);
+    public Money calculateItemAmount(List<Ingredient> ingredients) {
+        selectionCountCheck(ingredients);
 
-        return items.stream()
-                .map(Item::getPrice)
+        return ingredients.stream()
+                .map(Ingredient::getPrice)
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private void selectionCountCheck(List<Item> items) {
-        int size = items.size();
+    private void selectionCountCheck(List<Ingredient> ingredients) {
+        int size = ingredients.size();
         if(minCount > size || size > maxCount)
             throw new IllegalArgumentException();
     }

@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class ProductItemGroup {
+public class ProductIngredientGroup {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
@@ -24,19 +24,19 @@ public class ProductItemGroup {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_group_id")
-    private ItemGroup itemGroup;
+    private IngredientGroup ingredientGroup;
 
-    public ProductItemGroup(Product product, ItemGroup itemGroup) {
+    public ProductIngredientGroup(Product product, IngredientGroup ingredientGroup) {
         this.product = product;
-        this.itemGroup = itemGroup;
+        this.ingredientGroup = ingredientGroup;
     }
 
-    protected boolean hasItemGroup(ItemGroup itemGroup) {
-        return this.itemGroup.equals(itemGroup);
+    protected boolean hasItemGroup(IngredientGroup ingredientGroup) {
+        return this.ingredientGroup.equals(ingredientGroup);
     }
 
-    public Money placeWithItems(List<Item> items) {
-        if(items.isEmpty()) return Money.ZERO;
-        return itemGroup.calculateItemAmount(items);
+    public Money placeWithItems(List<Ingredient> ingredients) {
+        if(ingredients.isEmpty()) return Money.ZERO;
+        return ingredientGroup.calculateItemAmount(ingredients);
     }
 }

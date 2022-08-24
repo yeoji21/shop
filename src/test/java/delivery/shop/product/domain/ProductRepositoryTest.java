@@ -48,17 +48,17 @@ class ProductRepositoryTest {
 
         // id가 3인 아이템을 선택했다고 가정
         // 해당 상품의 모든 itemGroup 조회
-        List<ItemGroup> itemGroups = queryFactory.select(itemGroup)
+        List<IngredientGroup> ingredientGroups = queryFactory.select(itemGroup)
                 .from(productItemGroup)
                 .where(productItemGroup.product.id.eq(1L))
                 .fetch();
 
         System.out.println("==========================================");
-        itemGroups.forEach(ig -> System.out.println(ig.getName()));
+        ingredientGroups.forEach(ig -> System.out.println(ig.getName()));
         System.out.println("==========================================");
 
         // 해당 상품의 1번 아이템과 그 아이템 그룹을 map으로 조회
-        Map<ItemGroup, List<Item>> map = queryFactory
+        Map<IngredientGroup, List<Ingredient>> map = queryFactory
                 .from(itemInGroup)
                 .join(itemInGroup.item, item)
                 .join(itemInGroup.itemGroup, itemGroup)
@@ -75,9 +75,9 @@ class ProductRepositoryTest {
                 });
 
         // 개수로만 체크하면 안됨
-        assertThat(itemGroups.size()).isEqualTo(map.size());
+        assertThat(ingredientGroups.size()).isEqualTo(map.size());
 
-        for (Map.Entry<ItemGroup, List<Item>> es : map.entrySet()) {
+        for (Map.Entry<IngredientGroup, List<Ingredient>> es : map.entrySet()) {
             es.getKey().calculateItemAmount(map.get(es.getKey()));
         }
 
@@ -96,7 +96,7 @@ class ProductRepositoryTest {
                 .fetchOne();
 
         System.out.println("**********************************************************************************");
-        Map<Long, List<Item>> map = queryFactory
+        Map<Long, List<Ingredient>> map = queryFactory
                 .from(itemInGroup)
                 .join(itemInGroup.item, item)
                 .join(itemInGroup.itemGroup, itemGroup)
@@ -114,39 +114,39 @@ class ProductRepositoryTest {
         Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
         em.persist(반반_치킨);
 
-        ItemGroup 뼈_선택 = new ItemGroup("뼈_선택", 1, 1);
+        IngredientGroup 뼈_선택 = new IngredientGroup("뼈_선택", 1, 1);
         em.persist(뼈_선택);
 
-        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 2);
+        IngredientGroup 양념_선택 = new IngredientGroup("양념 선택", 1, 2);
         em.persist(양념_선택);
 
-        ItemGroup emptyGroup = new ItemGroup("emptyGroup", 1, 1);
+        IngredientGroup emptyGroup = new IngredientGroup("emptyGroup", 1, 1);
         em.persist(emptyGroup);
 
         반반_치킨.addItemGroup(양념_선택);
         반반_치킨.addItemGroup(뼈_선택);
 //        반반_치킨.addItemGroup(emptyGroup);
 
-        Item item1 = new Item("후라이드", new Money(0));
-        Item item2 = new Item("양념", new Money(500));
-        Item item3 = new Item("간장", new Money(1000));
+        Ingredient ingredient1 = new Ingredient("후라이드", new Money(0));
+        Ingredient ingredient2 = new Ingredient("양념", new Money(500));
+        Ingredient ingredient3 = new Ingredient("간장", new Money(1000));
 
-        em.persist(item1);
-        em.persist(item2);
-        em.persist(item3);
+        em.persist(ingredient1);
+        em.persist(ingredient2);
+        em.persist(ingredient3);
 
-        양념_선택.addItem(item1);
-        양념_선택.addItem(item2);
-        양념_선택.addItem(item3);
+        양념_선택.addItem(ingredient1);
+        양념_선택.addItem(ingredient2);
+        양념_선택.addItem(ingredient3);
 
-        Item item4 = new Item("뼈", new Money(0));
-        Item item5 = new Item("순살", new Money(2_000));
+        Ingredient ingredient4 = new Ingredient("뼈", new Money(0));
+        Ingredient ingredient5 = new Ingredient("순살", new Money(2_000));
 
-        em.persist(item4);
-        em.persist(item5);
+        em.persist(ingredient4);
+        em.persist(ingredient5);
 
-        뼈_선택.addItem(item4);
-        뼈_선택.addItem(item5);
+        뼈_선택.addItem(ingredient4);
+        뼈_선택.addItem(ingredient5);
 
 
         OptionGroup sideMenu = new OptionGroup("사이드 메뉴", 3);
@@ -179,38 +179,58 @@ class ProductRepositoryTest {
         System.out.println("=========================================================================");
 
 
-
-
         // 가격 계산 없이 필수 옵션 다 들어왔는지만 체크하려면 이게 베스트
-        Map<ItemGroup, List<Item>> ingredientMap = queryFactory
+        // 조회 때 item의 판매여부 체크 추가해야 함
+        List<Long> ingredientIds = List.of(ingredient2.getId(), ingredient3.getId(), ingredient5.getId());
+        Map<IngredientGroup, List<Ingredient>> ingredientMap = queryFactory
                 .from(productItemGroup)
-                .join(productItemGroup.product, product)
-                .join(productItemGroup.itemGroup, itemGroup)
+                .innerJoin(productItemGroup.product, product)
+                .innerJoin(productItemGroup.itemGroup, itemGroup)
                 .leftJoin(itemInGroup).on(itemInGroup.itemGroup.eq(itemGroup))
-                .leftJoin(itemInGroup.item, item).on(item.id.in(2L, 3L, 5L))
+                .leftJoin(itemInGroup.item, item).on(item.id.in(ingredientIds))
                 .where(product.id.eq(1L))
                 .transform(groupBy(itemGroup).as(GroupBy.list(item)));
 
-        for (Map.Entry<ItemGroup, List<Item>> es : ingredientMap.entrySet()) {
+        boolean[] checkIds = new boolean[ingredientIds.size()];
+        int ingredientSize = 0;
+        for (Map.Entry<IngredientGroup, List<Ingredient>> es : ingredientMap.entrySet()) {
+            ingredientSize += es.getValue().size();
             System.out.println(es.getKey().getName());
             System.out.print(" -> ");
             es.getValue().forEach(i -> System.out.print(i.getName() + " "));
             Money money = es.getKey().calculateItemAmount(es.getValue());
             System.out.println("totalPrice = " + money.toInt());
             System.out.println();
+            es.getValue().forEach(ingredient -> {
+                int index = ingredientIds.indexOf(ingredient.getId());
+                checkIds[index] = true;
+            });
         }
 
-        // 옵션은 이렇게 조회하면 안되지! 안들어와도 되니까
+        System.out.println("ingredientSize = " + ingredientSize);
+        for (int i = 0; i < checkIds.length; i++) {
+            if(!checkIds[i])
+                throw new IllegalArgumentException("ingredient id " + ingredientIds.get(i) + " is not in product");
+        }
+
         Map<OptionGroup, List<Option>> optionMap = queryFactory
                 .from(productOptionGroup)
                 .join(productOptionGroup.product, product)
                 .join(productOptionGroup.optionGroup, optionGroup)
                 .leftJoin(optionInGroup).on(optionInGroup.optionGroup.eq(optionGroup))
-                .leftJoin(optionInGroup.option, option).on(option.id.in(optionA.getId(), optionB.getId(), optionC.getId()))
-                .where(product.id.eq(1L))
+                .leftJoin(optionInGroup.option, option)
+                .where(product.id.eq(1L), option.id.in(optionA.getId(), optionB.getId(), optionC.getId()))
+//                .where(product.id.eq(1L), option.id.in(1231, 4124, 1412))
                 .transform(groupBy(optionGroup).as(GroupBy.list(option)));
 
+        // 근데 이러면 만약 product랑 option이랑 매핑이 안돼있어서 아무것도 리턴 못받아도 예외 안터질텐데?
+        // 문제 생길 여지 많음
+        // 조회된 옵션 개수가 파라미터로 넘어온 개수랑 같은지도 체크해야겠음 -> ingredient도 마찬가지
+        // 개수 비교 말고 equals 비교?
+
+        int optionSize = 0;
         for (Map.Entry<OptionGroup, List<Option>> es : optionMap.entrySet()) {
+            optionSize += es.getValue().size();
             System.out.println(es.getKey().getName());
             System.out.print(" -> ");
             es.getValue().forEach(o -> System.out.print(o.getName() + " "));
@@ -218,16 +238,18 @@ class ProductRepositoryTest {
             System.out.println();
         }
 
+        System.out.println("optionSize = " + optionSize);
+
     }
 
     private void setDataBidirectional() {
         Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
         em.persist(반반_치킨);
 
-        ItemGroup 뼈_선택 = new ItemGroup("뼈_선택", 1, 1);
+        IngredientGroup 뼈_선택 = new IngredientGroup("뼈_선택", 1, 1);
         em.persist(뼈_선택);
 
-        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 2);
+        IngredientGroup 양념_선택 = new IngredientGroup("양념 선택", 1, 2);
         em.persist(양념_선택);
 
         반반_치킨.addItemGroup(양념_선택);
@@ -237,26 +259,26 @@ class ProductRepositoryTest {
 //        em.persist(emptyGroup);
 //        반반_치킨.addItemGroup(emptyGroup);
 
-        Item item1 = new Item("후라이드", new Money(0));
-        Item item2 = new Item("양념", new Money(500));
-        Item item3 = new Item("간장", new Money(1000));
+        Ingredient ingredient1 = new Ingredient("후라이드", new Money(0));
+        Ingredient ingredient2 = new Ingredient("양념", new Money(500));
+        Ingredient ingredient3 = new Ingredient("간장", new Money(1000));
 
-        em.persist(item1);
-        em.persist(item2);
-        em.persist(item3);
+        em.persist(ingredient1);
+        em.persist(ingredient2);
+        em.persist(ingredient3);
 
-        양념_선택.addItem(item1);
-        양념_선택.addItem(item2);
-        양념_선택.addItem(item3);
+        양념_선택.addItem(ingredient1);
+        양념_선택.addItem(ingredient2);
+        양념_선택.addItem(ingredient3);
 
-        Item item4 = new Item("뼈", new Money(0));
-        Item item5 = new Item("순살", new Money(2_000));
+        Ingredient ingredient4 = new Ingredient("뼈", new Money(0));
+        Ingredient ingredient5 = new Ingredient("순살", new Money(2_000));
 
-        em.persist(item4);
-        em.persist(item5);
+        em.persist(ingredient4);
+        em.persist(ingredient5);
 
-        뼈_선택.addItem(item4);
-        뼈_선택.addItem(item5);
+        뼈_선택.addItem(ingredient4);
+        뼈_선택.addItem(ingredient5);
 
         em.flush();
         em.clear();
@@ -266,26 +288,26 @@ class ProductRepositoryTest {
         Product 반반_치킨 = new Product("반반 치킨", new Money(15_000));
         em.persist(반반_치킨);
 
-        ItemGroup 양념_선택 = new ItemGroup("양념 선택", 1, 1);
+        IngredientGroup 양념_선택 = new IngredientGroup("양념 선택", 1, 1);
         em.persist(양념_선택);
 
 //        ItemGroup 양념_선택2 = new ItemGroup("양념 선택2", 2, 2);
 //        em.persist(양념_선택2);
 //        em.persist(new ProductItemGroup(반반_치킨, 양념_선택2));
 
-        em.persist(new ProductItemGroup(반반_치킨, 양념_선택));
+        em.persist(new ProductIngredientGroup(반반_치킨, 양념_선택));
 
-        Item item1 = new Item("후라이드", new Money(0));
-        Item item2 = new Item("양념", new Money(500));
-        Item item3 = new Item("간장", new Money(1000));
+        Ingredient ingredient1 = new Ingredient("후라이드", new Money(0));
+        Ingredient ingredient2 = new Ingredient("양념", new Money(500));
+        Ingredient ingredient3 = new Ingredient("간장", new Money(1000));
 
-        em.persist(item1);
-        em.persist(item2);
-        em.persist(item3);
+        em.persist(ingredient1);
+        em.persist(ingredient2);
+        em.persist(ingredient3);
 
-        em.persist(new ItemInGroup(양념_선택, item1));
-        em.persist(new ItemInGroup(양념_선택, item2));
-        em.persist(new ItemInGroup(양념_선택, item3));
+        em.persist(new IngredientInGroup(양념_선택, ingredient1));
+        em.persist(new IngredientInGroup(양념_선택, ingredient2));
+        em.persist(new IngredientInGroup(양념_선택, ingredient3));
 
         em.flush();
         em.clear();
